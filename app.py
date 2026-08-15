@@ -13,9 +13,9 @@ st.set_page_config(
 st.title("🏓 AI Pickleball Biomechanics Coach")
 st.write("Upload your gameplay video for real multimodal AI video analysis.")
 
-# Securely load API key from Streamlit Cloud secrets
+# Securely load and clean API key from Streamlit Cloud secrets
 try:
-    api_key = st.secrets["GEMINI_API_KEY"]
+    api_key = st.secrets["GEMINI_API_KEY"].strip()
 except Exception:
     api_key = ""
 
