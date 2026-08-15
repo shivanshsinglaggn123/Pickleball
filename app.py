@@ -1,7 +1,7 @@
 import streamlit as st
 import tempfile
 import os
-from google import genai
+import google.generativeai as genai
 
 # Page Configuration
 st.set_page_config(
@@ -16,7 +16,6 @@ st.write("Upload your gameplay video for real multimodal AI video analysis.")
 # Sidebar for API Key & Settings
 with st.sidebar:
     st.header("⚙️ Configuration")
-    # Allows entering API key securely or pulling from Streamlit secrets
     api_key = st.text_input("Gemini API Key", type="password", value=st.secrets.get("GEMINI_API_KEY", ""))
     shot_type = st.selectbox("Select Shot Type", ["Forehand Drive", "Backhand Slice", "Serve", "Dink"])
     skill_level = st.slider("Player Skill Level (DUPR)", 1.0, 6.0, 3.5, 0.5)
@@ -39,29 +38,27 @@ if uploaded_video is not None:
                     tfile.write(uploaded_video.read())
                     tfile.close()
                     
-                    # Initialize Gemini Client
-                    client = genai.Client(api_key=api_key)
+                    # Configure Gemini API
+                    genai.configure(api_key=api_key)
                     
                     # Upload file to Gemini Files API
-                    video_ref = client.files.upload(file=tfile.name)
+                    video_file = genai.upload_file(path=tfile.name)
                     
                     # Craft prompt for Gemini
                     prompt = f"""
                     You are an elite pickleball coach and biomechanics expert. Analyze this video of a player executing a {shot_type}. 
                     The player's self-assessed skill level is DUPR {skill_level}.
                     
-                    Provide your response strictly in the following format so it can be parsed:
+                    Provide your response structured with:
                     1. Peak Velocity Estimate (e.g. 38.5 MPH)
                     2. Knee Bend Angle Estimate (e.g. 135°)
                     3. Form Score (out of 100)
                     4. Specific, highly tailored coaching feedback detailing what they did right and what exact mechanical adjustments they need to make based directly on what you observe in this video file.
                     """
                     
-                    # Generate response using Gemini 2.5 Flash (multimodal video support)
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=[video_ref, prompt]
-                    )
+                    # Use gemini-1.5-flash for stable multimodal video analysis
+                    model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+                    response = model.generate_content([video_file, prompt])
                     
                     st.markdown("---")
                     st.subheader("📊 AI Biomechanics & Performance Report")
