@@ -1,7 +1,7 @@
 import streamlit as st
 import tempfile
 import os
-import google.generativeai as genai
+from google import genai
 
 # Page Configuration
 st.set_page_config(
@@ -43,11 +43,11 @@ if uploaded_video is not None:
                     tfile.write(uploaded_video.read())
                     tfile.close()
                     
-                    # Configure Gemini API
-                    genai.configure(api_key=api_key)
+                    # Initialize Modern GenAI Client (supports AQ. keys)
+                    client = genai.Client(api_key=api_key)
                     
                     # Upload file to Gemini Files API
-                    video_file = genai.upload_file(path=tfile.name)
+                    video_file = client.files.upload(file=tfile.name)
                     
                     # Craft prompt for Gemini
                     prompt = f"""
@@ -61,9 +61,11 @@ if uploaded_video is not None:
                     4. Specific, highly tailored coaching feedback detailing what they did right and what exact mechanical adjustments they need to make based directly on what you observe in this video file.
                     """
                     
-                    # Generate response using Gemini Flash
-                    model = genai.GenerativeModel(model_name="gemini-1.5-flash")
-                    response = model.generate_content([video_file, prompt])
+                    # Generate response using Gemini Flash via modern SDK
+                    response = client.models.generate_content(
+                        model='gemini-2.5-flash',
+                        contents=[video_file, prompt]
+                    )
                     
                     st.markdown("---")
                     st.subheader("📊 AI Biomechanics & Performance Report")
