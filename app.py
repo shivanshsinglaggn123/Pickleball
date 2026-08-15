@@ -43,7 +43,7 @@ if uploaded_video is not None:
                     tfile.write(uploaded_video.read())
                     tfile.close()
                     
-                    # Initialize Modern GenAI Client (supports AQ. keys)
+                    # Initialize Modern GenAI Client
                     client = genai.Client(api_key=api_key)
                     
                     # Upload file to Gemini Files API
@@ -61,9 +61,9 @@ if uploaded_video is not None:
                     4. Specific, highly tailored coaching feedback detailing what they did right and what exact mechanical adjustments they need to make based directly on what you observe in this video file.
                     """
                     
-                    # Generate response using Gemini Flash via modern SDK
+                    # Generate response using the active Gemini 3.5 Flash model
                     response = client.models.generate_content(
-                        model='gemini-2.5-flash',
+                        model='gemini-3.5-flash',
                         contents=[video_file, prompt]
                     )
                     
