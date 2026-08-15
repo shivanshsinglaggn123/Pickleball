@@ -13,10 +13,15 @@ st.set_page_config(
 st.title("🏓 AI Pickleball Biomechanics Coach")
 st.write("Upload your gameplay video for real multimodal AI video analysis.")
 
-# Sidebar for API Key & Settings
+# Securely load API key from Streamlit Cloud secrets
+try:
+    api_key = st.secrets["GEMINI_API_KEY"]
+except Exception:
+    api_key = ""
+
+# Sidebar for Additional Settings
 with st.sidebar:
     st.header("⚙️ Configuration")
-    api_key = st.text_input("Gemini API Key", type="password", value=st.secrets.get("GEMINI_API_KEY", ""))
     shot_type = st.selectbox("Select Shot Type", ["Forehand Drive", "Backhand Slice", "Serve", "Dink"])
     skill_level = st.slider("Player Skill Level (DUPR)", 1.0, 6.0, 3.5, 0.5)
 
@@ -29,7 +34,7 @@ if uploaded_video is not None:
     
     if st.button("🚀 Run Real-Time AI Video Analysis", type="primary"):
         if not api_key:
-            st.error("Please enter your Gemini API key in the sidebar to run the analysis.")
+            st.error("Gemini API key is missing from Streamlit secrets. Please configure it in your app settings.")
         else:
             with st.spinner("Uploading video to Gemini AI and analyzing biomechanics..."):
                 try:
