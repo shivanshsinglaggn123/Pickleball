@@ -1,7 +1,7 @@
 import streamlit as st
 import tempfile
 import os
-from google import genai
+import google.generativeai as genai
 
 # Page Configuration
 st.set_page_config(
@@ -38,11 +38,11 @@ if uploaded_video is not None:
                     tfile.write(uploaded_video.read())
                     tfile.close()
                     
-                    # Initialize GenAI Client
-                    client = genai.Client(api_key=api_key)
+                    # Configure Gemini API
+                    genai.configure(api_key=api_key)
                     
                     # Upload file to Gemini Files API
-                    video_file = client.files.upload(file=tfile.name)
+                    video_file = genai.upload_file(path=tfile.name)
                     
                     # Craft prompt for Gemini
                     prompt = f"""
@@ -57,10 +57,8 @@ if uploaded_video is not None:
                     """
                     
                     # Generate response using Gemini Flash
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=[video_file, prompt]
-                    )
+                    model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+                    response = model.generate_content([video_file, prompt])
                     
                     st.markdown("---")
                     st.subheader("📊 AI Biomechanics & Performance Report")
