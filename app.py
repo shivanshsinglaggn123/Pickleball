@@ -4,6 +4,7 @@ import os
 import time
 import sqlite3
 import json
+import traceback
 from datetime import datetime
 import pandas as pd
 import plotly.express as px
@@ -243,12 +244,19 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 🎯 Pickleball Configuration")
     
-    # 💥 CHANGED: Specific player focus vs All players
     player_focus = st.radio("Target Tracking", [
         "Analyze All Players", 
         "Specific Player (Near Court)", 
         "Specific Player (Far Court)"
     ])
+    
+    player_identifier = ""
+    if "Specific Player" in player_focus:
+        player_identifier = st.text_input(
+            "Player Visual Cue / Description", 
+            value="Player in neon shirt / left side",
+            help="Describe the player's clothing, hat, or court position so Gemini knows exactly who to track."
+        )
     
     analysis_depth = st.radio("Intelligence Scope", [
         "Comprehensive Kinematics (Form & Movement)", 
@@ -283,7 +291,6 @@ with col_upload:
     st.subheader("📹 Session Video Capture")
     uploaded_file = st.file_uploader("Upload match clip or training footage (MP4, MOV)", type=["mp4", "mov", "avi"])
 
-    # 💥 CRASH FIX: Storing ONLY the string name of the file, never the file object itself.
     if "video_file_name" not in st.session_state:
         st.session_state.video_file_name = None
     if "display_path" not in st.session_state:
@@ -305,7 +312,6 @@ with col_upload:
                         with open(path, "wb") as f:
                             f.write(uploaded_file.getbuffer())
 
-                        # Upload to Google and get the file reference
                         if USE_NEW_SDK:
                             v_file = client.files.upload(file=path)
                             while v_file.state.name == "PROCESSING":
@@ -317,9 +323,7 @@ with col_upload:
                                 time.sleep(2)
                                 v_file = genai.get_file(v_file.name)
 
-                        # 💥 CRASH FIX: Save ONLY the name string to session_state
                         st.session_state.video_file_name = v_file.name 
-                        
                         st.session_state.last_filename = uploaded_file.name
                         st.session_state.display_path = path
                         st.success("✅ Cloud indexing complete. Ready for biomechanical run!")
@@ -401,36 +405,49 @@ if run_clicked:
     else:
         with st.spinner("Analyzing kinetic chain using gemini-3.5-flash..."):
             
-            # 💥 Updated Prompt to reflect the new user selections
+            tracking_instruction = player_focus
+            if player_identifier:
+                tracking_instruction += f" (Target Player Identification: {player_identifier})"
+
             prompt = f"""Elite Pickleball Biomechanics & Computer Vision Suite:
-            Target Tracking Focus: {player_focus}
+            Target Tracking Scope: {tracking_instruction}
             Athlete Rating: {skill_level}/7.0 DUPR
             Analysis Focus: {analysis_depth}
             
             Provide a deep, expert-level technical breakdown covering:
-            1. Ready Stance, Knee Flexion & Center of Mass (for the focused player)
+            1. Ready Stance, Knee Flexion & Center of Mass (specifically for the targeted player)
             2. Kinetic Chain Acceleration & Energy Transfer Efficiency
             3. Mechanical Faults / Rotational Inefficiencies
-            4. 3 Actionable Pro Drills to Immediate Fix Mechanics
+            4. 3 Actionable Pro Drills to Immediately Fix Mechanics
             """
 
             response_text = None
             try:
-                # 💥 CRASH FIX: We re-fetch the active file using the string name right before generating
+                # Robust cloud file retrieval with fallback re-upload if expired
                 if USE_NEW_SDK:
-                    active_file = client.files.get(name=st.session_state.video_file_name)
+                    try:
+                        active_file = client.files.get(name=st.session_state.video_file_name)
+                    except Exception:
+                        active_file = client.files.upload(file=st.session_state.display_path)
+                        st.session_state.video_file_name = active_file.name
+
                     res = client.models.generate_content(
                         model="gemini-3.5-flash",
                         contents=[active_file, prompt]
                     )
                 else:
-                    active_file = genai.get_file(st.session_state.video_file_name)
+                    try:
+                        active_file = genai.get_file(st.session_state.video_file_name)
+                    except Exception:
+                        active_file = genai.upload_file(st.session_state.display_path)
+                        st.session_state.video_file_name = active_file.name
+
                     model = genai.GenerativeModel("gemini-3.5-flash")
                     res = model.generate_content([active_file, prompt])
                 
                 response_text = res.text
             except Exception as e:
-                response_text = f"⚠️ Analysis failed: {str(e)}"
+                response_text = f"⚠️ Analysis failed with error:\n```text\n{traceback.format_exc()}\n```"
 
             st.session_state.latest_analysis = response_text
             
