@@ -13,7 +13,7 @@ except ImportError:
         import google.generativeai as genai
         USE_NEW_SDK = False
     except ImportError:
-        st.error("Missing Gemini SDK. Run: pip install google-genai")
+        st.error("Missing Gemini SDK. Run: pip install -U google-generativeai google-genai")
         st.stop()
 
 # ==========================================
@@ -222,7 +222,6 @@ with col_video:
                         if USE_NEW_SDK:
                             video_file = client.files.upload(file=raw_path)
                             
-                            # Polling loop: Wait until video processing completes on Google Cloud
                             while video_file.state.name == "PROCESSING":
                                 time.sleep(2)
                                 video_file = client.files.get(name=video_file.name)
@@ -286,11 +285,11 @@ with col_save_btn:
 
 if st.button("🚀 Run AI Motion Breakdown", type="primary", use_container_width=True):
     if not client:
-        st.error("❌ Gemini API Key missing or invalid. Set GEMINI_API_KEY in Streamlit secrets.")
+        st.error("❌ Gemini API Key missing or invalid.")
     elif st.session_state.video_ref is None:
         st.error("❌ Please upload session footage clip first.")
     else:
-        with st.spinner("Analyzing kinetic chain, weight transfer, and paddle path..."):
+        with st.spinner("Finding supported AI model and analyzing kinetic chain..."):
             target_clause = f"Focus specifically on target athlete: '{player_target}'." if (analysis_scope == "Target Specific Athlete" and player_target.strip()) else "Analyze all subjects in frame."
             
             prompt = f"""Elite Biomechanics & Computer Vision Analysis:
@@ -304,10 +303,23 @@ if st.button("🚀 Run AI Motion Breakdown", type="primary", use_container_width
             4. Priority Coaching Corrections & Tactical Drills
             """
 
-            # Fallback array to match active model strings on your API key
-            candidate_models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
             response_text = None
-            last_error = ""
+            error_log = ""
+            
+            # Universal fallbacks that don't trigger future model errors
+            candidate_models = ["gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro-latest", "gemini-1.5-flash-001"]
+
+            # Dynamically fetch available models connected to your specific API Key to ensure we hit a valid one
+            try:
+                if not USE_NEW_SDK:
+                    available = genai.list_models()
+                    for m in available:
+                        if 'generateContent' in m.supported_generation_methods:
+                            clean_name = m.name.replace("models/", "")
+                            if clean_name not in candidate_models and "flash" in clean_name.lower():
+                                candidate_models.append(clean_name)
+            except Exception as e:
+                pass # Fallback to our hardcoded list above if listing fails
 
             for model_id in candidate_models:
                 try:
@@ -323,13 +335,13 @@ if st.button("🚀 Run AI Motion Breakdown", type="primary", use_container_width
                     response_text = res.text
                     break
                 except Exception as err:
-                    last_error = str(err)
+                    error_log += f"[{model_id}: {str(err)}] "
                     continue
 
             if response_text:
                 st.session_state.analysis_text = response_text
             else:
-                st.session_state.analysis_text = f"⚠️ Analysis Failed: {last_error}"
+                st.session_state.analysis_text = f"⚠️ Analysis Failed on all models.\n\n**Error Log:** {error_log}"
 
 with st.container(border=True):
     st.markdown(st.session_state.analysis_text)
