@@ -1,2 +1,2 @@
-streamlit
-google-genai
+streamlit==1.28.1
+google-generativeai==0.3.0
