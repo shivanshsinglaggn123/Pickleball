@@ -1,4 +1,3 @@
-````python
 import streamlit as st
 import tempfile
 import os
@@ -1522,4 +1521,3 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-````
