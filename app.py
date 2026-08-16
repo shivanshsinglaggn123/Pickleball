@@ -5,6 +5,7 @@ import os
 import sqlite3
 import tempfile
 import textwrap
+import time
 
 from google import genai
 import pandas as pd
