@@ -54,6 +54,15 @@ st.markdown(f"""
         letter-spacing: -0.015em;
     }}
 
+    .sub-header {{
+        color: {text_secondary};
+        margin-top: -0.4rem;
+        margin-bottom: 1.5rem;
+        font-size: 1.05rem;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+    }}
+
     .auth-card {{
         background: {surface_color};
         padding: 3rem 2.5rem;
@@ -264,9 +273,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown("# Biomechanical Motion Studio")
-st.markdown(f"<p style='color: {text_secondary}; margin-top: -6px; font-size: 1.02rem;'>Upload sports session footage for instant computer vision telemetry and coaching.</p>", unsafe_allow_html=True)
-
-st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+st.markdown('<p class="sub-header">Upload high-definition session footage for instant computer vision telemetry and coaching.</p>', unsafe_allow_html=True)
 
 # --- MAIN LAYOUT ---
 col_video, col_insights = st.columns([1.2, 1], gap="large")
