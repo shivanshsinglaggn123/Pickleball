@@ -7,7 +7,6 @@ import json
 from datetime import datetime
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 
 # Flexible Google GenAI SDK import
 try:
@@ -100,7 +99,7 @@ def db_get_history(email):
 # 2. PAGE CONFIGURATION & STYLING
 # ==========================================
 st.set_page_config(
-    page_title="KineticPulse AI — Biomechanical Motion Suite",
+    page_title="KineticPulse AI — Pickleball Motion Suite",
     page_icon="🏓",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -149,7 +148,7 @@ if not st.session_state.user_session:
                 <div style="text-align: center; margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: center; margin-bottom: 0.75rem;">{PICKLEBALL_LOGO_SVG}</div>
                     <h2 style="font-size: 1.6rem; font-weight: 800; margin: 0;">KineticPulse AI</h2>
-                    <p style="color: #94A3B8; font-size: 0.9rem; margin-top: 0.4rem;">Professional Biomechanical Motion Suite</p>
+                    <p style="color: #94A3B8; font-size: 0.9rem; margin-top: 0.4rem;">Professional Pickleball Motion Suite</p>
                 </div>
         ''', unsafe_allow_html=True)
 
@@ -157,7 +156,6 @@ if not st.session_state.user_session:
         user_email_val = None
         user_name_val = None
 
-        # Safely attempt to initialize OAuth
         try:
             google_client_id = st.secrets.get("GOOGLE_CLIENT_ID", "").strip()
             google_client_secret = st.secrets.get("GOOGLE_CLIENT_SECRET", "").strip()
@@ -173,7 +171,7 @@ if not st.session_state.user_session:
                     revoke_token_endpoint="https://oauth2.googleapis.com/revoke"
                 )
                 result = oauth2.authorize_button(
-                    name="Continue with Google (accounts.google.com)",
+                    name="Continue with Google",
                     icon="https://www.svgrepo.com/show/475656/google-color.svg",
                     redirect_uri=app_redirect_uri,
                     scope="openid email profile",
@@ -243,10 +241,21 @@ with st.sidebar:
     ''', unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown("### 🎯 Analysis Configuration")
-    sport_mode = st.selectbox("Sport / Discipline", ["Pickleball (Singles / Doubles)", "Tennis Baseline Biomechanics", "Padel Volley & Smash"])
-    analysis_depth = st.radio("Intelligence Scope", ["Comprehensive Kinematics", "Rapid Tactical Breakdown"])
-    skill_level = st.slider("Competitive Rating (DUPR / UTR)", 2.0, 7.0, 5.0, 0.25)
+    st.markdown("### 🎯 Pickleball Configuration")
+    
+    # 💥 CHANGED: Specific player focus vs All players
+    player_focus = st.radio("Target Tracking", [
+        "Analyze All Players", 
+        "Specific Player (Near Court)", 
+        "Specific Player (Far Court)"
+    ])
+    
+    analysis_depth = st.radio("Intelligence Scope", [
+        "Comprehensive Kinematics (Form & Movement)", 
+        "Rapid Tactical Breakdown (Shot Selection & Position)"
+    ])
+    
+    skill_level = st.slider("Competitive Rating (DUPR)", 2.0, 7.0, 4.0, 0.25)
 
     st.markdown("---")
     st.markdown("### 📂 Saved Cloud History")
@@ -265,7 +274,7 @@ with st.sidebar:
 # ==========================================
 # 6. MAIN DASHBOARD VIEW
 # ==========================================
-st.markdown('<h1 style="font-size: 2.5rem; margin-bottom: 0.2rem;">Computer Vision <span class="hero-gradient">Motion Studio</span></h1>', unsafe_allow_html=True)
+st.markdown('<h1 style="font-size: 2.5rem; margin-bottom: 0.2rem;">Pickleball <span class="hero-gradient">Motion Studio</span></h1>', unsafe_allow_html=True)
 st.markdown('<p style="color: #94A3B8; font-size: 1.05rem; margin-bottom: 2rem;">Multimodal frame-by-frame kinematic tracking powered by Gemini 3.5 Cloud Intelligence.</p>', unsafe_allow_html=True)
 
 col_upload, col_dashboard = st.columns([1.2, 1], gap="large")
@@ -274,8 +283,9 @@ with col_upload:
     st.subheader("📹 Session Video Capture")
     uploaded_file = st.file_uploader("Upload match clip or training footage (MP4, MOV)", type=["mp4", "mov", "avi"])
 
-    if "video_file_ref" not in st.session_state:
-        st.session_state.video_file_ref = None
+    # 💥 CRASH FIX: Storing ONLY the string name of the file, never the file object itself.
+    if "video_file_name" not in st.session_state:
+        st.session_state.video_file_name = None
     if "display_path" not in st.session_state:
         st.session_state.display_path = None
     if "latest_analysis" not in st.session_state:
@@ -295,6 +305,7 @@ with col_upload:
                         with open(path, "wb") as f:
                             f.write(uploaded_file.getbuffer())
 
+                        # Upload to Google and get the file reference
                         if USE_NEW_SDK:
                             v_file = client.files.upload(file=path)
                             while v_file.state.name == "PROCESSING":
@@ -306,7 +317,9 @@ with col_upload:
                                 time.sleep(2)
                                 v_file = genai.get_file(v_file.name)
 
-                        st.session_state.video_file_ref = v_file
+                        # 💥 CRASH FIX: Save ONLY the name string to session_state
+                        st.session_state.video_file_name = v_file.name 
+                        
                         st.session_state.last_filename = uploaded_file.name
                         st.session_state.display_path = path
                         st.success("✅ Cloud indexing complete. Ready for biomechanical run!")
@@ -381,19 +394,21 @@ with col_export_btn:
         )
 
 if run_clicked:
-    if st.session_state.video_file_ref is None:
+    if st.session_state.video_file_name is None:
         st.error("❌ Please upload session video footage first.")
     elif not client:
         st.error("❌ Gemini API Client not initialized.")
     else:
         with st.spinner("Analyzing kinetic chain using gemini-3.5-flash..."):
-            prompt = f"""Elite Biomechanics & Computer Vision Suite:
-            Sport Mode: {sport_mode}
-            Athlete Rating: {skill_level}/7.0 DUPR/UTR
+            
+            # 💥 Updated Prompt to reflect the new user selections
+            prompt = f"""Elite Pickleball Biomechanics & Computer Vision Suite:
+            Target Tracking Focus: {player_focus}
+            Athlete Rating: {skill_level}/7.0 DUPR
             Analysis Focus: {analysis_depth}
             
             Provide a deep, expert-level technical breakdown covering:
-            1. Ready Stance, Knee Flexion & Center of Mass
+            1. Ready Stance, Knee Flexion & Center of Mass (for the focused player)
             2. Kinetic Chain Acceleration & Energy Transfer Efficiency
             3. Mechanical Faults / Rotational Inefficiencies
             4. 3 Actionable Pro Drills to Immediate Fix Mechanics
@@ -401,14 +416,17 @@ if run_clicked:
 
             response_text = None
             try:
+                # 💥 CRASH FIX: We re-fetch the active file using the string name right before generating
                 if USE_NEW_SDK:
+                    active_file = client.files.get(name=st.session_state.video_file_name)
                     res = client.models.generate_content(
                         model="gemini-3.5-flash",
-                        contents=[st.session_state.video_file_ref, prompt]
+                        contents=[active_file, prompt]
                     )
                 else:
+                    active_file = genai.get_file(st.session_state.video_file_name)
                     model = genai.GenerativeModel("gemini-3.5-flash")
-                    res = model.generate_content([st.session_state.video_file_ref, prompt])
+                    res = model.generate_content([active_file, prompt])
                 
                 response_text = res.text
             except Exception as e:
