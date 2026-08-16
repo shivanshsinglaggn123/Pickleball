@@ -395,21 +395,22 @@ current_user = st.session_state.user_session
 # SIDEBAR
 # ============================================================
 
-st.sidebar.markdown(
-    """
-    <div style="margin-bottom: 1rem;">
-        <div>
-            <span style="font-size:1.15rem; font-weight:800; background:linear-gradient(135deg,#06B6D4,#8B5CF6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-                KineticPulse
-            </span>
-            <div style="font-size:0.7rem; color:#34D399; font-weight:700;">
-                ● CLOUD SYNCHRONIZED
+with st.sidebar:
+    st.markdown(
+        """
+        <div style="margin-bottom: 1rem;">
+            <div>
+                <span style="font-size:1.15rem; font-weight:800; background:linear-gradient(135deg,#06B6D4,#8B5CF6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+                    KineticPulse
+                </span>
+                <div style="font-size:0.7rem; color:#34D399; font-weight:700;">
+                    ● CLOUD SYNCHRONIZED
+                </div>
             </div>
         </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+        """,
+        unsafe_allow_html=True
+    )
 
     st.markdown(
         textwrap.dedent(
@@ -500,7 +501,6 @@ st.sidebar.markdown(
         st.session_state.display_path = None
         st.session_state.last_filename = None
         st.rerun()
-
 
 # ============================================================
 # MAIN DASHBOARD
