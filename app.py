@@ -2,7 +2,6 @@ import streamlit as st
 import tempfile
 import os
 import time
-import json
 from datetime import datetime
 from google import genai
 
@@ -38,7 +37,6 @@ for key, value in DEFAULTS.items():
 # ==========================================
 BG_COLOR = "#0B0F17"           # Deep Midnight Space
 SURFACE_COLOR = "#131B2A"      # Slate Navy Glass
-SURFACE_ELEVATED = "#1D283A"   # Elevated Card Surface
 BORDER_COLOR = "#2A384E"       # Crisp Divider Border
 
 st.markdown(f"""
@@ -279,7 +277,7 @@ if not st.session_state.authenticated:
     st.stop()
 
 # ==========================================
-# 5. SIDEBAR & PROGRESS SYNCHRONIZATION
+# 5. SIDEBAR, TRACKING TARGET & TUNING
 # ==========================================
 with st.sidebar:
     st.markdown("""
@@ -317,7 +315,6 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
 
-    # Guest Upgrade Prompt to Save Progress
     if st.session_state.is_guest:
         st.warning("⚠️ Progress won't be saved after session ends unless linked to Google.")
         if st.button("🔗 Connect Google Account to Save", use_container_width=True):
@@ -331,6 +328,13 @@ with st.sidebar:
         st.session_state.auth_step = "main_menu"
         st.session_state.video_ref = None
         st.rerun()
+
+    st.markdown("---")
+    st.markdown("### 🎯 Tracking Target")
+    analysis_scope = st.radio("Focus Mode", ["Comprehensive (All Subjects)", "Target Specific Athlete"])
+    player_target = ""
+    if analysis_scope == "Target Specific Athlete":
+        player_target = st.text_input("Target description", placeholder="e.g. Sprinter in red jersey / Pitcher in white uniform")
 
     st.markdown("---")
     st.markdown("### ⚙️ Analysis Tuning")
@@ -431,7 +435,7 @@ with col_telemetry:
     st.info("💡 **Pro Tip:** Clips between 10s and 40s provide optimal biomechanical frame tracking density.")
 
 # ==========================================
-# 7. AI MOTION BREAKDOWN & PROGRESS SAVING
+# 7. AI MOTION BREAKDOWN & TARGETED ANALYSIS
 # ==========================================
 st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
 st.markdown("<hr style='border-color: #2A384E;'>", unsafe_allow_html=True)
@@ -460,8 +464,11 @@ if st.button("🚀 Run AI Motion Breakdown", type="primary", use_container_width
     else:
         with st.spinner("Analyzing kinetic chain, power transfer, and joint angles..."):
             try:
+                target_clause = f"Focus specifically on target athlete: '{player_target}'." if (analysis_scope == "Target Specific Athlete" and player_target.strip()) else "Analyze all subjects in frame."
+                
                 prompt = f"""Elite Biomechanics & Computer Vision Analysis:
                 Athlete Experience Rating: {skill_level}/6.0
+                Tracking Scope: {target_clause}
                 
                 Deliver a high-value breakdown including:
                 1. Posture, Alignment & Center of Gravity
