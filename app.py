@@ -13,7 +13,6 @@ st.set_page_config(
 # --- ADVANCED VIBRANT ATHLETIC TECH CSS ---
 st.markdown("""
     <style>
-    /* Global Theme & Rich Dark Palette */
     .main .block-container {
         background-color: #0A0F1D;
         color: #F8FAFC;
@@ -26,7 +25,6 @@ st.markdown("""
         font-weight: 800;
     }
 
-    /* Modern Sign-In Card */
     .auth-container {
         background: linear-gradient(135deg, #1E1B4B 0%, #0F172A 100%);
         padding: 3rem 2.5rem;
@@ -38,7 +36,6 @@ st.markdown("""
         text-align: center;
     }
     
-    /* Sleek Metric Cards with Gradient Borders */
     .metric-card {
         background: linear-gradient(145deg, #1E293B, #0F172A);
         padding: 1.25rem;
@@ -70,7 +67,6 @@ st.markdown("""
         margin-top: 0.3rem;
     }
 
-    /* Coaching Breakdown Output Box */
     .coaching-output {
         background: #111827;
         padding: 2rem;
@@ -82,7 +78,6 @@ st.markdown("""
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
     }
 
-    /* Upload Box Styling */
     div[data-testid="stFileUploader"] {
         background: #111827;
         border: 2px dashed #4F46E5;
@@ -90,7 +85,6 @@ st.markdown("""
         padding: 1.5rem;
     }
     
-    /* Hide Streamlit Branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -161,7 +155,6 @@ except Exception:
 
 # --- SIDEBAR NAVIGATION & CONTROLS ---
 with st.sidebar:
-    # Custom SVG App Logo in Sidebar
     st.markdown("""
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -200,7 +193,7 @@ with col_h1:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# --- MAIN LAYOUT (Video Upload vs Quick Metrics) ---
+# --- MAIN LAYOUT ---
 col_video, col_insights = st.columns([1.2, 1], gap="large")
 
 with col_video:
@@ -208,13 +201,15 @@ with col_video:
     uploaded_video = st.file_uploader("Upload MP4 or MOV clip (up to 1 GB)", type=["mp4", "mov"])
     
     if uploaded_video:
-        st.video(uploaded_video)
+        # Read bytes immediately to prevent stream consumption issues
+        video_bytes = uploaded_video.read()
+        st.video(video_bytes)
         
         if st.session_state.video_ref is None or uploaded_video.name != st.session_state.get("last_uploaded_name"):
             with st.spinner("Processing high-def video stream with Gemini..."):
                 try:
                     tfile = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-                    tfile.write(uploaded_video.read())
+                    tfile.write(video_bytes)
                     tfile.close()
                     
                     client = genai.Client(api_key=api_key)
@@ -286,14 +281,13 @@ if st.button("🚀 Run Comprehensive AI Video Analysis", type="primary", use_con
             except Exception as e:
                 st.session_state.analysis_text = f"An error occurred during AI processing: {e}"
 
-# Display AI Coaching Output in sleek card
 st.markdown(f"""
     <div class="coaching-output">
         {st.session_state.analysis_text}
     </div>
 """, unsafe_allow_html=True)
 
-# --- CLEAN FOOTER (Without broken links) ---
+# --- CLEAN FOOTER ---
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown("---")
 st.markdown("<p style='text-align: center; color: #64748B; font-size: 0.9rem;'>© 2026 PaddlePulse AI. Engineered for Peak Athletic Performance.</p>", unsafe_allow_html=True)
