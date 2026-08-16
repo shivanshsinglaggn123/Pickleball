@@ -10,16 +10,8 @@ from datetime import datetime
 import pandas as pd
 import plotly.express as px
 
-# Flexible Google GenAI SDK import
-try:
-    from google import genai
-    USE_NEW_SDK = True
-except ImportError:
-    try:
-        import google.generativeai as genai
-        USE_NEW_SDK = False
-    except ImportError:
-        pass
+# Modern Google GenAI SDK import
+from google import genai
 
 # Optional OAuth component import
 try:
@@ -128,11 +120,7 @@ client = None
 try:
     api_key = st.secrets.get("GEMINI_API_KEY", "").strip()
     if api_key:
-        if USE_NEW_SDK:
-            client = genai.Client(api_key=api_key)
-        else:
-            genai.configure(api_key=api_key)
-            client = genai
+        client = genai.Client(api_key=api_key)
 except Exception as e:
     st.sidebar.error(f"GenAI Init Error: {str(e)}")
 
@@ -318,16 +306,10 @@ with col_upload:
                         with open(path, "wb") as f:
                             f.write(uploaded_file.getbuffer())
 
-                        if USE_NEW_SDK:
-                            v_file = client.files.upload(file=path)
-                            while getattr(v_file.state, "name", str(v_file.state)) in ["PROCESSING", "PENDING"]:
-                                time.sleep(2)
-                                v_file = client.files.get(name=v_file.name)
-                        else:
-                            v_file = genai.upload_file(path)
-                            while v_file.state.name == "PROCESSING":
-                                time.sleep(2)
-                                v_file = genai.get_file(v_file.name)
+                        v_file = client.files.upload(file=path)
+                        while getattr(v_file.state, "name", str(v_file.state)) in ["PROCESSING", "PENDING"]:
+                            time.sleep(2)
+                            v_file = client.files.get(name=v_file.name)
 
                         st.session_state.video_file_name = v_file.name 
                         st.session_state.last_filename = uploaded_file.name
@@ -336,8 +318,8 @@ with col_upload:
                     except Exception as err:
                         st.error(f"Cloud Upload Error: {str(err)}")
 
-        if st.session_state.display_path and os.path.exists(st.session_state.display_path):
-            st.video(st.session_state.display_path)
+    if st.session_state.display_path and os.path.exists(st.session_state.display_path):
+        st.video(st.session_state.display_path)
 
 with col_dashboard:
     st.subheader("📊 Biomechanical Telemetry")
@@ -430,29 +412,26 @@ if run_clicked:
             response_text = None
             try:
                 # Robust cloud file retrieval with fallback re-upload if expired
-                if USE_NEW_SDK:
-                    try:
-                        active_file = client.files.get(name=st.session_state.video_file_name)
-                    except Exception:
-                        active_file = client.files.upload(file=st.session_state.display_path)
-                        st.session_state.video_file_name = active_file.name
+                try:
+                    active_file = client.files.get(name=st.session_state.video_file_name)
+                except Exception:
+                    active_file = client.files.upload(file=st.session_state.display_path)
+                    st.session_state.video_file_name = active_file.name
 
-                    # Use universally stable gemini-2.5-flash
-                    res = client.models.generate_content(
-                        model="gemini-2.5-flash",
-                        contents=[active_file, prompt]
-                    )
-                else:
-                    try:
-                        active_file = genai.get_file(st.session_state.video_file_name)
-                    except Exception:
-                        active_file = genai.upload_file(st.session_state.display_path)
-                        st.session_state.video_file_name = active_file.name
-
-                    model = genai.GenerativeModel("gemini-2.5-flash")
-                    res = model.generate_content([active_file, prompt])
+                # Use google-genai SDK
+                res = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=[active_file, prompt]
+                )
                 
-                response_text = res.text
+                # Safe response extraction to prevent crashes on empty/filtered responses
+                if res and hasattr(res, "text") and res.text:
+                    response_text = res.text
+                elif res and res.candidates:
+                    response_text = "⚠️ Analysis completed, but output was restricted by safety or content guidelines."
+                else:
+                    response_text = "⚠️ Received empty response from Gemini model."
+
             except Exception as e:
                 response_text = f"⚠️ Analysis failed with error:\n```text\n{str(e)}\n{traceback.format_exc()}\n```"
 
