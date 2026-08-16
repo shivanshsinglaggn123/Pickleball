@@ -1,18 +1,18 @@
-import streamlit as st
-import tempfile
-import os
-import time
-import sqlite3
-import json
-import base64
 from datetime import datetime
+import base64
+import json
+import os
+import sqlite3
+import tempfile
 
+from google import genai
 import pandas as pd
 import plotly.express as px
-from google import genai
+import streamlit as st
 
 try:
     from streamlit_oauth import OAuth2Component
+
     HAS_OAUTH_LIB = True
 except ImportError:
     HAS_OAUTH_LIB = False
@@ -277,9 +277,9 @@ if not st.session_state.user_session:
     _, center_col, _ = st.columns([1, 1.3, 1])
 
     with center_col:
-        st.markdown(
-            f"""
-            <div class="auth-modal">
+        with st.container(border=True):
+            st.markdown(
+                f"""
                 <div style="text-align:center; margin-bottom:2rem;">
                     <div style="display:flex; justify-content:center; margin-bottom:0.75rem;">
                         {PICKLEBALL_LOGO_SVG}
@@ -289,100 +289,105 @@ if not st.session_state.user_session:
                         Professional Pickleball Motion Suite
                     </p>
                 </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        auth_success = False
-        user_email_val = None
-        user_name_val = None
-
-        try:
-            google_client_id = st.secrets.get("GOOGLE_CLIENT_ID", "").strip()
-            google_client_secret = st.secrets.get("GOOGLE_CLIENT_SECRET", "").strip()
-            app_redirect_uri = st.secrets.get(
-                "REDIRECT_URI",
-                "http://localhost:8501"
-            ).strip()
-
-            if HAS_OAUTH_LIB and google_client_id and google_client_secret:
-                oauth2 = OAuth2Component(
-                    client_id=google_client_id,
-                    client_secret=google_client_secret,
-                    authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
-                    token_endpoint="https://oauth2.googleapis.com/token",
-                    refresh_token_endpoint="https://oauth2.googleapis.com/token",
-                    revoke_token_endpoint="https://oauth2.googleapis.com/revoke",
-                )
-
-                result = oauth2.authorize_button(
-                    name="Continue with Google",
-                    icon="https://www.svgrepo.com/show/475656/google-color.svg",
-                    redirect_uri=app_redirect_uri,
-                    scope="openid email profile",
-                    key="google_oauth_btn",
-                )
-
-                if result and "token" in result:
-                    id_token_enc = result["token"].get("id_token")
-
-                    if id_token_enc:
-                        parts = id_token_enc.split(".")
-
-                        if len(parts) >= 2:
-                            payload = parts[1]
-                            payload += "=" * (-len(payload) % 4)
-                            decoded = json.loads(
-                                base64.b64decode(payload).decode("utf-8")
-                            )
-
-                            user_email_val = decoded.get("email")
-                            user_name_val = decoded.get(
-                                "name",
-                                user_email_val.split("@")[0]
-                                if user_email_val
-                                else "Athlete",
-                            )
-
-                            if user_email_val:
-                                auth_success = True
-
-        except Exception as oauth_err:
-            st.info(
-                f"💡 OAuth Notice: Running with safe authentication fallback. ({oauth_err})"
+                """,
+                unsafe_allow_html=True,
             )
 
-        st.markdown(
-            """
-            <div style="text-align:center; color:#475569; font-size:0.8rem; margin:1rem 0;">
-                ATHLETE STUDIO ACCESS
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+            auth_success = False
+            user_email_val = None
+            user_name_val = None
 
-        if st.button(
-            "🚀 Enter Athlete Studio",
-            use_container_width=True,
-            type="primary",
-        ):
-            user_email_val = "athlete@kineticpulse.ai"
-            user_name_val = "Alex Rivers"
-            auth_success = True
+            try:
+                google_client_id = st.secrets.get(
+                    "GOOGLE_CLIENT_ID", ""
+                ).strip()
+                google_client_secret = st.secrets.get(
+                    "GOOGLE_CLIENT_SECRET", ""
+                ).strip()
+                app_redirect_uri = st.secrets.get(
+                    "REDIRECT_URI", "http://localhost:8501"
+                ).strip()
 
-        if auth_success and user_email_val:
-            db_upsert_user(user_email_val, user_name_val, "#06B6D4")
-            user_data = db_get_user(user_email_val)
+                if (
+                    HAS_OAUTH_LIB
+                    and google_client_id
+                    and google_client_secret
+                ):
+                    oauth2 = OAuth2Component(
+                        client_id=google_client_id,
+                        client_secret=google_client_secret,
+                        authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
+                        token_endpoint="https://oauth2.googleapis.com/token",
+                        refresh_token_endpoint="https://oauth2.googleapis.com/token",
+                        revoke_token_endpoint="https://oauth2.googleapis.com/revoke",
+                    )
 
-            st.session_state.user_session = {
-                "email": user_email_val,
-                "name": user_data[0] if user_data else user_name_val,
-                "avatar_color": user_data[1] if user_data else "#06B6D4",
-            }
+                    result = oauth2.authorize_button(
+                        name="Continue with Google",
+                        icon="https://www.svgrepo.com/show/475656/google-color.svg",
+                        redirect_uri=app_redirect_uri,
+                        scope="openid email profile",
+                        key="google_oauth_btn",
+                    )
 
-            st.rerun()
+                    if result and "token" in result:
+                        id_token_enc = result["token"].get("id_token")
 
-        st.markdown("</div>", unsafe_allow_html=True)
+                        if id_token_enc:
+                            parts = id_token_enc.split(".")
+
+                            if len(parts) >= 2:
+                                payload = parts[1]
+                                payload += "=" * (-len(payload) % 4)
+                                decoded = json.loads(
+                                    base64.b64decode(payload).decode("utf-8")
+                                )
+
+                                user_email_val = decoded.get("email")
+                                user_name_val = decoded.get(
+                                    "name",
+                                    user_email_val.split("@")[0]
+                                    if user_email_val
+                                    else "Athlete",
+                                )
+
+                                if user_email_val:
+                                    auth_success = True
+
+            except Exception as oauth_err:
+                st.info(
+                    f"💡 OAuth Notice: Running with safe authentication fallback. ({oauth_err})"
+                )
+
+            st.markdown(
+                """
+                <div style="text-align:center; color:#475569; font-size:0.8rem; margin:1rem 0;">
+                    ATHLETE STUDIO ACCESS
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            if st.button(
+                "🚀 Enter Athlete Studio",
+                use_container_width=True,
+                type="primary",
+            ):
+                user_email_val = "athlete@kineticpulse.ai"
+                user_name_val = "Alex Rivers"
+                auth_success = True
+
+            if auth_success and user_email_val:
+                db_upsert_user(user_email_val, user_name_val, "#06B6D4")
+                user_data = db_get_user(user_email_val)
+
+                st.session_state.user_session = {
+                    "email": user_email_val,
+                    "name": user_data[0] if user_data else user_name_val,
+                    "avatar_color": user_data[1] if user_data else "#06B6D4",
+                }
+
+                st.rerun()
 
     st.stop()
 
@@ -491,7 +496,8 @@ with st.sidebar:
 
             with st.expander(f"🗓️ {date_display} | {display_name}"):
                 st.write(
-                    summary_text[:220] + ("..." if len(summary_text) > 220 else "")
+                    summary_text[:220]
+                    + ("..." if len(summary_text) > 220 else "")
                 )
 
     if st.button("🚪 Sign Out", use_container_width=True):
@@ -593,7 +599,9 @@ with col_upload:
                             v_file = client.files.get(name=v_file.name)
 
                         st.session_state.video_file_name = v_file.name
-                        st.session_state.video_file_uri = getattr(v_file, "uri", None)
+                        st.session_state.video_file_uri = getattr(
+                            v_file, "uri", None
+                        )
                         st.session_state.video_mime_type = getattr(
                             v_file,
                             "mime_type",
@@ -606,7 +614,9 @@ with col_upload:
                             "Click 'Run AI Biomechanical Analysis' to analyze it."
                         )
 
-                        st.success("✅ Video processed by Gemini and ready for AI analysis!")
+                        st.success(
+                            "✅ Video processed by Gemini and ready for AI analysis!"
+                        )
 
                     except Exception as err:
                         st.session_state.video_file_name = None
@@ -870,7 +880,6 @@ Provide:
                 except Exception:
                     active_file = None
 
-                # If the Gemini file cannot be retrieved, re-upload it.
                 if active_file is None:
                     local_path = st.session_state.display_path
 
