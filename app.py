@@ -161,6 +161,7 @@ if not st.session_state.user_session:
         try:
             google_client_id = st.secrets.get("GOOGLE_CLIENT_ID", "").strip()
             google_client_secret = st.secrets.get("GOOGLE_CLIENT_SECRET", "").strip()
+            app_redirect_uri = st.secrets.get("REDIRECT_URI", "http://localhost:8501").strip()
             
             if HAS_OAUTH_LIB and google_client_id and google_client_secret:
                 oauth2 = OAuth2Component(
@@ -174,7 +175,7 @@ if not st.session_state.user_session:
                 result = oauth2.authorize_button(
                     name="Continue with Google (accounts.google.com)",
                     icon="https://www.svgrepo.com/show/475656/google-color.svg",
-                    redirect_uri="http://localhost:8501",
+                    redirect_uri=app_redirect_uri,
                     scope="openid email profile",
                     key="google_oauth_btn"
                 )
