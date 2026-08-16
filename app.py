@@ -52,15 +52,17 @@ st.markdown(f"""
         color: {text_primary} !important;
         font-weight: 700;
         letter-spacing: -0.015em;
+        margin-bottom: 0.2rem !important;
     }}
 
     .sub-header {{
         color: {text_secondary};
-        margin-top: -0.4rem;
+        margin-top: 0rem;
         margin-bottom: 1.5rem;
         font-size: 1.05rem;
         font-weight: 400;
         letter-spacing: -0.01em;
+        line-height: 1.5;
     }}
 
     .auth-card {{
