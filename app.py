@@ -6,7 +6,7 @@ from google import genai
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="KineticPulse AI - Elite Motion Studio",
+    page_title="KineticPulse AI — Elite Motion Studio",
     page_icon="⚡",
     layout="wide"
 )
@@ -18,22 +18,25 @@ if "user_name" not in st.session_state:
     st.session_state.user_name = "Athlete"
 if "user_email" not in st.session_state:
     st.session_state.user_email = ""
+if "auth_step" not in st.session_state:
+    st.session_state.auth_step = "main"  # 'main' or 'google_modal'
 if "theme_mode" not in st.session_state:
-    st.session_state.theme_mode = "Vibrant Dark"
+    st.session_state.theme_mode = "Vibrant Obsidian"
 if "video_ref" not in st.session_state:
     st.session_state.video_ref = None
 if "analysis_text" not in st.session_state:
-    st.session_state.analysis_text = "Upload your high-definition session footage and click 'Run Comprehensive AI Analysis' to receive an exhaustive biomechanical breakdown."
+    st.session_state.analysis_text = "Upload your high-definition session footage and click 'Run Comprehensive AI Analysis' to receive an exhaustive, professional-grade biomechanical breakdown."
 
-# --- VIBRANT MATERIAL / GEMINI DESIGN SYSTEM ---
-if st.session_state.theme_mode == "Vibrant Dark":
-    bg_color = "#0B0F19"
-    surface_color = "#131827"
-    surface_elevated = "#1E2538"
-    border_color = "#2D3748"
+# --- PREMIUM DESIGN SYSTEM (MATERIAL 3 & GEMINI VIBRANT THEME) ---
+if st.session_state.theme_mode == "Vibrant Obsidian":
+    bg_color = "#070B14"
+    surface_color = "#0F1626"
+    surface_elevated = "#1A2338"
+    border_color = "#2A3859"
     text_primary = "#F8FAFC"
     text_secondary = "#94A3B8"
-    vibrant_gradient = "linear-gradient(135deg, #06B6D4 0%, #8B5CF6 50%, #EC4899 100%)"
+    accent_gradient = "linear-gradient(135deg, #00F2FE 0%, #4FACFE 50%, #6366F1 100%)"
+    card_shadow = "0 25px 50px -12px rgba(0, 0, 0, 0.7)"
 else:
     bg_color = "#F8FAFC"
     surface_color = "#FFFFFF"
@@ -41,11 +44,12 @@ else:
     border_color = "#E2E8F0"
     text_primary = "#0F172A"
     text_secondary = "#64748B"
-    vibrant_gradient = "linear-gradient(135deg, #0284C7 0%, #7C3AED 100%, #DB2777 100%)"
+    accent_gradient = "linear-gradient(135deg, #0284C7 0%, #7C3AED 50%, #DB2777 100%)"
+    card_shadow = "0 20px 40px -10px rgba(0, 0, 0, 0.08)"
 
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap');
 
     html, body, [class*="css"] {{
         font-family: 'Google Sans', sans-serif;
@@ -54,9 +58,9 @@ st.markdown(f"""
     .main .block-container {{
         background-color: {bg_color};
         color: {text_primary};
-        padding-top: 2rem;
-        padding-bottom: 3rem;
-        transition: background-color 0.25s ease;
+        padding-top: 2.5rem;
+        padding-bottom: 3.5rem;
+        transition: background-color 0.3s ease;
     }}
     
     h1, h2, h3 {{
@@ -65,42 +69,43 @@ st.markdown(f"""
         letter-spacing: -0.02em;
     }}
 
-    /* Branded Header Badge */
+    /* Authentication & Modal Card */
+    .auth-card {{
+        background: {surface_color};
+        padding: 3.5rem 3rem;
+        border-radius: 32px;
+        border: 1px solid {border_color};
+        box-shadow: {card_shadow};
+        max-width: 480px;
+        margin: 3rem auto;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }}
+
+    /* Branded App Badge */
     .app-badge {{
         display: inline-flex;
         align-items: center;
         gap: 8px;
         background: {surface_elevated};
         border: 1px solid {border_color};
-        padding: 6px 16px;
-        border-radius: 20px;
+        padding: 8px 18px;
+        border-radius: 24px;
         font-size: 0.85rem;
         font-weight: 500;
         color: {text_primary};
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }}
 
-    /* Authentication Card */
-    .auth-card {{
-        background: {surface_color};
-        padding: 3.5rem 3rem;
-        border-radius: 28px;
-        border: 1px solid {border_color};
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
-        max-width: 480px;
-        margin: 4rem auto;
-        text-align: center;
-    }}
-
-    /* Metric Card with Vibrant Gradient Accent */
+    /* Metric Card */
     .metric-card {{
         background: {surface_color};
         padding: 1.5rem;
-        border-radius: 20px;
+        border-radius: 24px;
         border: 1px solid {border_color};
         text-align: center;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         position: relative;
         overflow: hidden;
     }}
@@ -108,12 +113,12 @@ st.markdown(f"""
         content: '';
         position: absolute;
         top: 0; left: 0; width: 100%; height: 4px;
-        background: {vibrant_gradient};
+        background: {accent_gradient};
     }}
     .metric-val {{
-        font-size: 2.2rem;
+        font-size: 2.3rem;
         font-weight: 700;
-        background: {vibrant_gradient};
+        background: {accent_gradient};
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }}
@@ -121,27 +126,27 @@ st.markdown(f"""
         font-size: 0.75rem;
         color: {text_secondary};
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-top: 0.4rem;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
         font-weight: 600;
     }}
 
-    /* AI Coaching Output */
+    /* AI Coaching Output Box */
     .coaching-output {{
         background: {surface_color};
         padding: 2.5rem;
-        border-radius: 24px;
+        border-radius: 28px;
         border: 1px solid {border_color};
         color: {text_primary};
         line-height: 1.9;
         font-size: 1.05rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
     }}
 
     div[data-testid="stFileUploader"] {{
         background: {surface_color};
-        border: 2px dashed #8B5CF6;
-        border-radius: 20px;
+        border: 2px dashed #6366F1;
+        border-radius: 24px;
         padding: 1.5rem;
     }}
     
@@ -151,37 +156,75 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- AUTHENTICATION SCREEN ---
+# --- AUTHENTICATION FLOW ---
 if not st.session_state.authenticated:
+    
+    # GOOGLE ACCOUNT SELECTOR MODAL VIEW
+    if st.session_state.auth_step == "google_modal":
+        st.markdown("""
+            <div class="auth-card">
+                <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                    <svg width="36" height="36" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.19v3.15C3.17 21.32 7.23 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.19C.43 8.12 0 9.87 0 12s.43 3.88 1.19 5.42l4.09-3.15z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.23 0 3.17 2.68 1.19 6.58l4.09 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                </div>
+                <h2 style="font-size: 1.5rem; margin-bottom: 0.2rem;">Choose an account</h2>
+                <p style="color: #94A3B8; font-size: 0.9rem; margin-bottom: 2rem;">to continue to KineticPulse AI</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        col_m1, col_m2, col_m3 = st.columns([1, 1.6, 1])
+        with col_m2:
+            if st.button("👤 alex.turner.pro@gmail.com", use_container_width=True):
+                with st.spinner("Authenticating with Google OAuth..."):
+                    time.sleep(1.0)
+                st.session_state.authenticated = True
+                st.session_state.user_name = "Alex Turner"
+                st.session_state.user_email = "alex.turner.pro@gmail.com"
+                st.rerun()
+                
+            if st.button("👤 athlete.elite@gmail.com", use_container_width=True):
+                with st.spinner("Authenticating with Google OAuth..."):
+                    time.sleep(1.0)
+                st.session_state.authenticated = True
+                st.session_state.user_name = "Jordan Vance"
+                st.session_state.user_email = "athlete.elite@gmail.com"
+                st.rerun()
+                
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("← Back to login options", use_container_width=True):
+                st.session_state.auth_step = "main"
+                st.rerun()
+        st.stop()
+
+    # MAIN LANDING / SIGN-IN SCREEN
     st.markdown("""
         <div class="auth-card">
             <div style="display: flex; justify-content: center; margin-bottom: 1.2rem;">
-                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="10" fill="url(#logo_grad)"/>
-                    <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="url(#main_grad)"/>
+                    <path d="M7 12L10 15L17 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                     <defs>
-                        <linearGradient id="logo_grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#06B6D4"/>
-                            <stop offset="0.5" stop-color="#8B5CF6"/>
-                            <stop offset="1" stop-color="#EC4899"/>
+                        <linearGradient id="main_grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#00F2FE"/>
+                            <stop offset="1" stop-color="#6366F1"/>
                         </linearGradient>
                     </defs>
                 </svg>
             </div>
-            <h1 style="font-size: 2.1rem; margin-bottom: 0.3rem;">KineticPulse AI</h1>
+            <h1 style="font-size: 2.2rem; margin-bottom: 0.4rem;">KineticPulse AI</h1>
             <p style="color: #94A3B8; margin-bottom: 2.5rem; font-size: 0.95rem;">Professional Computer Vision & Biomechanics Studio</p>
         </div>
     """, unsafe_allow_html=True)
     
     col_a, col_b, col_c = st.columns([1, 1.4, 1])
     with col_b:
-        # Real Google Sign-In redirect simulation button
+        # Google Sign In Button triggering modal
         if st.button("🌐 Sign in with Google", use_container_width=True):
-            with st.spinner("Redirecting to accounts.google.com..."):
-                time.sleep(1.2)  # Simulate secure OAuth handshake
-            st.session_state.authenticated = True
-            st.session_state.user_name = "Alex Turner"
-            st.session_state.user_email = "alex.turner@gmail.com"
+            st.session_state.auth_step = "google_modal"
             st.rerun()
             
         if st.button("⚡ Continue as Guest", use_container_width=True):
@@ -203,8 +246,8 @@ with st.sidebar:
     st.markdown("""
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" fill="#8B5CF6"/>
-                <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="12" cy="12" r="10" fill="#6366F1"/>
+                <path d="M7 12L10 15L17 8" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
             </svg>
             <span style="font-size: 1.25rem; font-weight: 700;">KineticPulse</span>
         </div>
@@ -215,11 +258,12 @@ with st.sidebar:
     
     if st.button("🚪 Sign Out", use_container_width=True):
         st.session_state.authenticated = False
+        st.session_state.auth_step = "main"
         st.rerun()
         
     st.markdown("---")
     st.markdown("## 🎨 Personalization")
-    theme_selection = st.radio("Color Theme", ["Vibrant Dark", "Clean Light"], index=0 if st.session_state.theme_mode=="Vibrant Dark" else 1)
+    theme_selection = st.radio("Color Theme", ["Vibrant Obsidian", "Clean Light"], index=0 if st.session_state.theme_mode=="Vibrant Obsidian" else 1)
     if theme_selection != st.session_state.theme_mode:
         st.session_state.theme_mode = theme_selection
         st.rerun()
@@ -241,7 +285,7 @@ with st.sidebar:
 # --- MAIN APP HEADER ---
 st.markdown("""
     <div class="app-badge">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#06B6D4"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#00F2FE"/></svg>
         Powered by Gemini 3.5 Flash Multimodal Engine
     </div>
 """, unsafe_allow_html=True)
