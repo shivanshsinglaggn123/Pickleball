@@ -2,7 +2,7 @@ import streamlit as st
 import tempfile
 import os
 import time
-from google import genai
+import google.generativeai as genai
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -19,7 +19,7 @@ if "user_name" not in st.session_state:
 if "user_email" not in st.session_state:
     st.session_state.user_email = ""
 if "auth_step" not in st.session_state:
-    st.session_state.auth_step = "main"  # 'main' or 'google_modal'
+    st.session_state.auth_step = "main"
 if "theme_mode" not in st.session_state:
     st.session_state.theme_mode = "Vibrant Obsidian"
 if "video_ref" not in st.session_state:
@@ -27,7 +27,7 @@ if "video_ref" not in st.session_state:
 if "analysis_text" not in st.session_state:
     st.session_state.analysis_text = "Upload your high-definition session footage and click 'Run Comprehensive AI Analysis' to receive an exhaustive, professional-grade biomechanical breakdown."
 
-# --- PREMIUM DESIGN SYSTEM (MATERIAL 3 & GEMINI VIBRANT THEME) ---
+# --- PREMIUM DESIGN SYSTEM ---
 if st.session_state.theme_mode == "Vibrant Obsidian":
     bg_color = "#070B14"
     surface_color = "#0F1626"
@@ -49,10 +49,10 @@ else:
 
 st.markdown(f"""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
 
     html, body, [class*="css"] {{
-        font-family: 'Google Sans', sans-serif;
+        font-family: 'Poppins', 'Google Sans', sans-serif;
     }}
 
     .main .block-container {{
@@ -69,7 +69,6 @@ st.markdown(f"""
         letter-spacing: -0.02em;
     }}
 
-    /* Authentication & Modal Card */
     .auth-card {{
         background: {surface_color};
         padding: 3.5rem 3rem;
@@ -80,74 +79,123 @@ st.markdown(f"""
         margin: 3rem auto;
         text-align: center;
         backdrop-filter: blur(10px);
+        animation: slideInUp 0.5s ease-out;
     }}
 
-    /* Branded App Badge */
+    @keyframes slideInUp {{
+        from {{ transform: translateY(20px); opacity: 0; }}
+        to {{ transform: translateY(0); opacity: 1; }}
+    }}
+
     .app-badge {{
         display: inline-flex;
         align-items: center;
         gap: 8px;
         background: {surface_elevated};
         border: 1px solid {border_color};
-        padding: 8px 18px;
-        border-radius: 24px;
+        padding: 10px 20px;
+        border-radius: 32px;
         font-size: 0.85rem;
-        font-weight: 500;
+        font-weight: 600;
         color: {text_primary};
         margin-bottom: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
     }}
 
-    /* Metric Card */
+    .app-badge:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(99, 102, 241, 0.3);
+    }}
+
     .metric-card {{
         background: {surface_color};
-        padding: 1.5rem;
+        padding: 2rem 1.5rem;
         border-radius: 24px;
         border: 1px solid {border_color};
         text-align: center;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         position: relative;
         overflow: hidden;
+        transition: all 0.3s ease;
     }}
+    
+    .metric-card:hover {{
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 242, 254, 0.2);
+    }}
+    
     .metric-card::after {{
         content: '';
         position: absolute;
         top: 0; left: 0; width: 100%; height: 4px;
         background: {accent_gradient};
     }}
+    
     .metric-val {{
-        font-size: 2.3rem;
+        font-size: 2.5rem;
         font-weight: 700;
         background: {accent_gradient};
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        background-clip: text;
     }}
+    
     .metric-lbl {{
         font-size: 0.75rem;
         color: {text_secondary};
         text-transform: uppercase;
         letter-spacing: 0.12em;
-        margin-top: 0.5rem;
+        margin-top: 0.8rem;
         font-weight: 600;
     }}
 
-    /* AI Coaching Output Box */
     .coaching-output {{
         background: {surface_color};
-        padding: 2.5rem;
+        padding: 3rem;
         border-radius: 28px;
         border: 1px solid {border_color};
         color: {text_primary};
-        line-height: 1.9;
+        line-height: 2;
         font-size: 1.05rem;
         box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        animation: fadeIn 0.6s ease-out;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }}
+
+    @keyframes fadeIn {{
+        from {{ opacity: 0; }}
+        to {{ opacity: 1; }}
     }}
 
     div[data-testid="stFileUploader"] {{
-        background: {surface_color};
-        border: 2px dashed #6366F1;
-        border-radius: 24px;
-        padding: 1.5rem;
+        background: {surface_color} !important;
+        border: 2px dashed #6366F1 !important;
+        border-radius: 24px !important;
+        padding: 2rem !important;
+        transition: all 0.3s ease;
+    }}
+
+    div[data-testid="stFileUploader"]:hover {{
+        border-color: #00F2FE !important;
+        box-shadow: 0 10px 25px rgba(0, 242, 254, 0.15);
+    }}
+
+    button {{
+        transition: all 0.3s ease !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.5px;
+    }}
+
+    button[kind="primary"] {{
+        background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 50%, #6366F1 100%) !important;
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3) !important;
+    }}
+
+    button[kind="primary"]:hover {{
+        transform: translateY(-2px) !important;
+        box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4) !important;
     }}
     
     #MainMenu {{visibility: hidden;}}
@@ -159,7 +207,6 @@ st.markdown(f"""
 # --- AUTHENTICATION FLOW ---
 if not st.session_state.authenticated:
     
-    # GOOGLE ACCOUNT SELECTOR MODAL VIEW
     if st.session_state.auth_step == "google_modal":
         st.markdown("""
             <div class="auth-card">
@@ -179,7 +226,7 @@ if not st.session_state.authenticated:
         col_m1, col_m2, col_m3 = st.columns([1, 1.6, 1])
         with col_m2:
             if st.button("👤 alex.turner.pro@gmail.com", use_container_width=True):
-                with st.spinner("Authenticating with Google OAuth..."):
+                with st.spinner("Authenticating..."):
                     time.sleep(1.0)
                 st.session_state.authenticated = True
                 st.session_state.user_name = "Alex Turner"
@@ -187,7 +234,7 @@ if not st.session_state.authenticated:
                 st.rerun()
                 
             if st.button("👤 athlete.elite@gmail.com", use_container_width=True):
-                with st.spinner("Authenticating with Google OAuth..."):
+                with st.spinner("Authenticating..."):
                     time.sleep(1.0)
                 st.session_state.authenticated = True
                 st.session_state.user_name = "Jordan Vance"
@@ -195,12 +242,11 @@ if not st.session_state.authenticated:
                 st.rerun()
                 
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("← Back to login options", use_container_width=True):
+            if st.button("← Back", use_container_width=True):
                 st.session_state.auth_step = "main"
                 st.rerun()
         st.stop()
 
-    # MAIN LANDING / SIGN-IN SCREEN
     st.markdown("""
         <div class="auth-card">
             <div style="display: flex; justify-content: center; margin-bottom: 1.2rem;">
@@ -222,7 +268,6 @@ if not st.session_state.authenticated:
     
     col_a, col_b, col_c = st.columns([1, 1.4, 1])
     with col_b:
-        # Google Sign In Button triggering modal
         if st.button("🌐 Sign in with Google", use_container_width=True):
             st.session_state.auth_step = "google_modal"
             st.rerun()
@@ -237,11 +282,12 @@ if not st.session_state.authenticated:
 # --- SECURE API KEY LOAD ---
 try:
     api_key = st.secrets["GEMINI_API_KEY"].strip()
+    genai.configure(api_key=api_key)
 except Exception:
     api_key = ""
-    st.error("API Key not found in secrets. Please configure it in your Streamlit Cloud settings.")
+    st.error("🔐 API Key not found in secrets.")
 
-# --- SIDEBAR CONTROLS & SETTINGS ---
+# --- SIDEBAR CONTROLS ---
 with st.sidebar:
     st.markdown("""
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;">
@@ -274,26 +320,23 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("## 👥 Analysis Scope")
-    analysis_scope = st.radio(
-        "Target Focus",
-        ["Comprehensive (All Subjects)", "Specific Target Subject"]
-    )
+    analysis_scope = st.radio("Target Focus", ["Comprehensive (All Subjects)", "Specific Target Subject"])
     player_target = ""
     if analysis_scope == "Specific Target Subject":
-        player_target = st.text_input("Subject description", placeholder="e.g. Athlete in foreground wearing vibrant jacket")
+        player_target = st.text_input("Subject description", placeholder="e.g. Athlete in foreground wearing jacket")
 
 # --- MAIN APP HEADER ---
 st.markdown("""
     <div class="app-badge">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#00F2FE"/></svg>
-        Powered by Gemini 3.5 Flash Multimodal Engine
+        Powered by Gemini 1.5 Flash
     </div>
 """, unsafe_allow_html=True)
 
 col_h1, col_h2 = st.columns([4, 1])
 with col_h1:
     st.markdown("# Biomechanical Motion & Form Studio")
-    st.markdown(f"<p style='color: {text_secondary}; margin-top: -8px; font-size: 1.05rem;'>Upload high-definition sports or movement footage for lightning-fast, exhaustive computer vision feedback.</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color: {text_secondary}; margin-top: -8px; font-size: 1.05rem;'>Upload high-definition sports footage for lightning-fast AI analysis.</p>", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -302,26 +345,26 @@ col_video, col_insights = st.columns([1.2, 1], gap="large")
 
 with col_video:
     st.subheader("📹 Session Footage Upload")
-    uploaded_video = st.file_uploader("Upload MP4 or MOV clip (Optimized for rapid streaming)", type=["mp4", "mov"])
+    uploaded_video = st.file_uploader("Upload MP4 or MOV", type=["mp4", "mov"])
     
     if uploaded_video:
         video_bytes = uploaded_video.read()
         st.video(video_bytes)
         
         if st.session_state.video_ref is None or uploaded_video.name != st.session_state.get("last_uploaded_name"):
-            with st.spinner("Streaming high-def video securely to Gemini..."):
+            with st.spinner("📤 Uploading video..."):
                 try:
                     tfile = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
                     tfile.write(video_bytes)
                     tfile.close()
                     
-                    client = genai.Client(api_key=api_key)
-                    st.session_state.video_ref = client.files.upload(file=tfile.name)
+                    video_file = genai.upload_file(path=tfile.name, mime_type="video/mp4")
+                    st.session_state.video_ref = video_file
                     st.session_state.last_uploaded_name = uploaded_video.name
                     os.unlink(tfile.name)
-                    st.success("Video successfully processed and ready!")
+                    st.success("✅ Video ready!")
                 except Exception as e:
-                    st.error(f"Error processing video: {e}")
+                    st.error(f"❌ Error: {str(e)}")
 
 with col_insights:
     st.subheader("📊 Session Telemetry")
@@ -338,48 +381,42 @@ with col_insights:
             """, unsafe_allow_html=True)
             
     st.markdown("<br>", unsafe_allow_html=True)
-    st.info("💡 **Pro Tip**: Keep clips between 10 to 45 seconds for instantaneous Gemini 3.5 Flash response times.")
+    st.info("💡 Keep clips 10-45 seconds for fastest results")
 
-# --- COMPREHENSIVE AI ANALYSIS SECTION ---
+# --- ANALYSIS SECTION ---
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown("---")
-st.subheader("🧠 Comprehensive Expert Motion Breakdown")
+st.subheader("🧠 AI Motion Breakdown")
 
-if st.button("🚀 Run Comprehensive AI Analysis", type="primary", use_container_width=True):
+if st.button("🚀 Run Analysis", type="primary", use_container_width=True):
     if not api_key:
-        st.error("API Key missing from secrets.")
+        st.error("❌ API Key missing")
     elif not st.session_state.video_ref:
-        st.error("Please upload a video file first.")
+        st.error("❌ Upload a video first")
     else:
-        with st.spinner("Gemini is analyzing posture, momentum transfer, entry angles, and execution dynamics..."):
+        with st.spinner("🧠 Analyzing..."):
             try:
-                client = genai.Client(api_key=api_key)
-                target_clause = f"Focus specifically on {player_target}." if player_target else "Evaluate all subjects visible in the video comprehensively."
+                target_clause = f"Focus on {player_target}." if player_target else "Comprehensive analysis."
                 
-                prompt = f"""
-                You are an elite sports scientist, world-class biomechanics coach, and motion analyst. Conduct an exhaustive, complete analysis of this video clip.
-                Athlete skill level context: {skill_level} out of 6.0.
+                prompt = f"""Elite sports biomechanics analysis:
+                Skill level: {skill_level}/6
                 {target_clause}
                 
-                Provide an all-encompassing, detailed breakdown covering EVERYTHING observable:
-                1. Posture, balance, and core stability.
-                2. Kinetic chain linkage, momentum transfer, and power generation.
-                3. Limb positioning, entry/exit angles, and execution mechanics.
-                4. Timing, rhythm, and consistency across movements.
-                5. Complete, actionable coaching recommendations and clear corrective steps for every observed phase.
+                Cover:
+                1. Posture & balance
+                2. Kinetic chain & power
+                3. Positioning & mechanics
+                4. Timing & consistency
+                5. Coaching recommendations
                 
-                Present the response in a structured, professional, highly encouraging tone without robotic numerical constraints. Be thorough and leave nothing out.
-                """
+                Be thorough and encouraging."""
                 
-                response = client.models.generate_content(
-                    model='gemini-3.5-flash',
-                    contents=[st.session_state.video_ref, prompt]
-                )
-                
+                model = genai.GenerativeModel(model_name='gemini-1.5-flash')
+                response = model.generate_content([st.session_state.video_ref, prompt], stream=False)
                 st.session_state.analysis_text = response.text
                 
             except Exception as e:
-                st.session_state.analysis_text = f"An error occurred during AI processing: {e}"
+                st.session_state.analysis_text = f"❌ Error: {str(e)[:200]}"
 
 st.markdown(f"""
     <div class="coaching-output">
@@ -387,7 +424,6 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# --- CLEAN FOOTER ---
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown("---")
-st.markdown(f"<p style='text-align: center; color: {text_secondary}; font-size: 0.9rem;'>© 2026 KineticPulse AI. Engineered for Peak Human Performance.</p>", unsafe_allow_html=True)
+st.markdown(f"<p style='text-align: center; color: {text_secondary}; font-size: 0.9rem;'>© 2026 KineticPulse AI</p>", unsafe_allow_html=True)
