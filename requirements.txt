@@ -1,4 +1,7 @@
 streamlit
+plotly
+pandas
 google-genai
-moviepy==1.0.3
-imageio-ffmpeg
+google-generativeai
+PyJWT
+streamlit-oauth
