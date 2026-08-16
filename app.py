@@ -289,7 +289,7 @@ with st.sidebar:
 # 6. MAIN DASHBOARD VIEW
 # ==========================================
 st.markdown('<h1 style="font-size: 2.5rem; margin-bottom: 0.2rem;">Pickleball <span class="hero-gradient">Motion Studio</span></h1>', unsafe_allow_html=True)
-st.markdown('<p style="color: #94A3B8; font-size: 1.05rem; margin-bottom: 2rem;">Multimodal frame-by-frame kinematic tracking powered by Gemini 3.5 Cloud Intelligence.</p>', unsafe_allow_html=True)
+st.markdown('<p style="color: #94A3B8; font-size: 1.05rem; margin-bottom: 2rem;">Multimodal frame-by-frame kinematic tracking powered by Gemini Cloud Intelligence.</p>', unsafe_allow_html=True)
 
 col_upload, col_dashboard = st.columns([1.2, 1], gap="large")
 
@@ -320,7 +320,7 @@ with col_upload:
 
                         if USE_NEW_SDK:
                             v_file = client.files.upload(file=path)
-                            while v_file.state.name == "PROCESSING":
+                            while getattr(v_file.state, "name", str(v_file.state)) in ["PROCESSING", "PENDING"]:
                                 time.sleep(2)
                                 v_file = client.files.get(name=v_file.name)
                         else:
@@ -391,7 +391,7 @@ st.markdown('<hr style="border-color: #1E293B;">', unsafe_allow_html=True)
 col_run_btn, col_export_btn = st.columns([2, 1])
 
 with col_run_btn:
-    run_clicked = st.button("🚀 Run AI Biomechanical Analysis (Gemini 3.5 Flash)", type="primary", use_container_width=True)
+    run_clicked = st.button("🚀 Run AI Biomechanical Analysis", type="primary", use_container_width=True)
 
 with col_export_btn:
     if st.session_state.latest_analysis and not st.session_state.latest_analysis.startswith("Upload"):
@@ -409,7 +409,7 @@ if run_clicked:
     elif not client:
         st.error("❌ Gemini API Client not initialized.")
     else:
-        with st.spinner("Analyzing kinetic chain using gemini-3.5-flash..."):
+        with st.spinner("Analyzing kinetic chain using Gemini AI..."):
             
             tracking_instruction = player_focus
             if player_identifier:
@@ -437,8 +437,9 @@ if run_clicked:
                         active_file = client.files.upload(file=st.session_state.display_path)
                         st.session_state.video_file_name = active_file.name
 
+                    # Use universally stable gemini-2.5-flash
                     res = client.models.generate_content(
-                        model="gemini-3.5-flash",
+                        model="gemini-2.5-flash",
                         contents=[active_file, prompt]
                     )
                 else:
@@ -448,12 +449,12 @@ if run_clicked:
                         active_file = genai.upload_file(st.session_state.display_path)
                         st.session_state.video_file_name = active_file.name
 
-                    model = genai.GenerativeModel("gemini-3.5-flash")
+                    model = genai.GenerativeModel("gemini-2.5-flash")
                     res = model.generate_content([active_file, prompt])
                 
                 response_text = res.text
             except Exception as e:
-                response_text = f"⚠️ Analysis failed with error:\n```text\n{traceback.format_exc()}\n```"
+                response_text = f"⚠️ Analysis failed with error:\n```text\n{str(e)}\n{traceback.format_exc()}\n```"
 
             st.session_state.latest_analysis = response_text
             
