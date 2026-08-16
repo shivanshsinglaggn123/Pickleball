@@ -2,6 +2,5 @@ streamlit
 plotly
 pandas
 google-genai
-google-generativeai
 PyJWT
 streamlit-oauth
