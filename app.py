@@ -18,32 +18,20 @@ if "user_name" not in st.session_state:
     st.session_state.user_name = "Athlete"
 if "user_email" not in st.session_state:
     st.session_state.user_email = ""
-if "theme_mode" not in st.session_state:
-    st.session_state.theme_mode = "Obsidian Dark"
 if "video_ref" not in st.session_state:
     st.session_state.video_ref = None
 if "analysis_text" not in st.session_state:
     st.session_state.analysis_text = "Upload high-definition session footage and click 'Run Comprehensive AI Analysis' to receive an exhaustive biomechanical breakdown."
 
-# --- EXACT OPPOSITE COLOR THEMES (Obsidian Dark vs. Pristine Light) ---
-if st.session_state.theme_mode == "Obsidian Dark":
-    bg_color = "#09090B"
-    surface_color = "#18181B"
-    surface_elevated = "#27272A"
-    border_color = "#3F3F46"
-    text_primary = "#FAFAFA"
-    text_secondary = "#A1A1AA"
-    accent_gradient = "linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #EC4899 100%)"
-    card_shadow = "0 12px 32px rgba(0, 0, 0, 0.6)"
-else:  # Clean Light (True absolute opposite)
-    bg_color = "#FFFFFF"
-    surface_color = "#F4F4F5"
-    surface_elevated = "#E4E4E7"
-    border_color = "#D4D4D8"
-    text_primary = "#09090B"
-    text_secondary = "#52525B"
-    accent_gradient = "linear-gradient(135deg, #0284C7 0%, #6366F1 50%, #DB2777 100%)"
-    card_shadow = "0 10px 30px rgba(0, 0, 0, 0.08)"
+# --- PREMIUM OBSIDIAN DESIGN SYSTEM ---
+bg_color = "#09090B"
+surface_color = "#18181B"
+surface_elevated = "#27272A"
+border_color = "#3F3F46"
+text_primary = "#FAFAFA"
+text_secondary = "#A1A1AA"
+accent_gradient = "linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #EC4899 100%)"
+card_shadow = "0 12px 32px rgba(0, 0, 0, 0.6)"
 
 st.markdown(f"""
     <style>
@@ -58,7 +46,6 @@ st.markdown(f"""
         color: {text_primary};
         padding-top: 2rem;
         padding-bottom: 4rem;
-        transition: background-color 0.2s ease;
     }}
     
     h1, h2, h3 {{
@@ -96,24 +83,29 @@ st.markdown(f"""
         font-weight: 600;
         color: {text_primary};
         margin-bottom: 1.2rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }}
 
     .metric-card {{
         background: {surface_color};
-        padding: 1.8rem 1.2rem;
+        padding: 1.5rem 1rem;
         border-radius: 20px;
         border: 1px solid {border_color};
         text-align: center;
         box-shadow: {card_shadow};
         position: relative;
         overflow: hidden;
+        height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }}
     
     .metric-card:hover {{
         transform: translateY(-3px);
-        box-shadow: 0 16px 36px rgba(100, 100, 255, 0.12);
+        box-shadow: 0 16px 36px rgba(56, 189, 248, 0.15);
     }}
     
     .metric-card::after {{
@@ -124,21 +116,24 @@ st.markdown(f"""
     }}
     
     .metric-val {{
-        font-size: 2.2rem;
+        font-size: 1.8rem;
         font-weight: 700;
         background: {accent_gradient};
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
+        line-height: 1.2;
+        white-space: nowrap;
     }}
     
     .metric-lbl {{
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         color: {text_secondary};
         text-transform: uppercase;
         letter-spacing: 0.1em;
-        margin-top: 0.6rem;
+        margin-top: 0.4rem;
         font-weight: 600;
+        white-space: nowrap;
     }}
 
     .coaching-output {{
@@ -167,7 +162,7 @@ st.markdown(f"""
         color: white !important;
         font-weight: 600 !important;
         border-radius: 12px !important;
-        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25) !important;
+        box-shadow: {card_shadow} !important;
     }}
     
     #MainMenu {{visibility: hidden;}}
@@ -176,7 +171,7 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- AUTHENTICATION FLOW (Seamless Google Sign-In) ---
+# --- AUTHENTICATION FLOW ---
 if not st.session_state.authenticated:
     st.markdown(f"""
         <div class="auth-card">
@@ -196,7 +191,6 @@ if not st.session_state.authenticated:
             <p style="color: {text_secondary}; margin-bottom: 2rem; font-size: 0.9rem;">Professional Computer Vision & Biomechanics</p>
     """, unsafe_allow_html=True)
     
-    # Clean, authentic Google Sign-In button interaction
     col_a, col_b, col_c = st.columns([0.1, 1, 0.1])
     with col_b:
         google_email_input = st.text_input("Sign in with Google Email", placeholder="your.name@gmail.com")
@@ -248,13 +242,6 @@ with st.sidebar:
     st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
     if st.button("🚪 Sign Out", use_container_width=True):
         st.session_state.authenticated = False
-        st.rerun()
-        
-    st.markdown("---")
-    st.markdown("### 🎨 Appearance")
-    theme_selection = st.radio("Color Theme", ["Obsidian Dark", "Clean Light"], index=0 if st.session_state.theme_mode=="Obsidian Dark" else 1)
-    if theme_selection != st.session_state.theme_mode:
-        st.session_state.theme_mode = theme_selection
         st.rerun()
         
     st.markdown("---")
