@@ -269,19 +269,19 @@ if not st.session_state.user_session:
     _, center_col, _ = st.columns([1, 1.3, 1])
 
     with center_col:
-    with st.container(border=True):
-        st.markdown(
-            f"<div style='text-align:center; margin-bottom:2rem;'>"
-            f"<div style='display:flex; justify-content:center; margin-bottom:0.75rem;'>"
-            f"{PICKLEBALL_LOGO_SVG}"
-            f"</div>"
-            f"<h2 style='font-size:1.6rem; font-weight:800; margin:0;'>KineticPulse AI</h2>"
-            f"<p style='color:#94A3B8; font-size:0.9rem; margin-top:0.4rem;'>"
-            f"Professional Pickleball Motion Suite"
-            f"</p>"
-            f"</div>",
-            unsafe_allow_html=True
-        )
+        with st.container(border=True):
+            st.markdown(
+                f"<div style='text-align:center; margin-bottom:2rem;'>"
+                f"<div style='display:flex; justify-content:center; margin-bottom:0.75rem;'>"
+                f"{PICKLEBALL_LOGO_SVG}"
+                f"</div>"
+                f"<h2 style='font-size:1.6rem; font-weight:800; margin:0;'>KineticPulse AI</h2>"
+                f"<p style='color:#94A3B8; font-size:0.9rem; margin-top:0.4rem;'>"
+                f"Professional Pickleball Motion Suite"
+                f"</p>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
 
             auth_success = False
             user_email_val = None
