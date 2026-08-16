@@ -153,43 +153,55 @@ if not st.session_state.user_session:
                 </div>
         ''', unsafe_allow_html=True)
 
-        google_client_id = st.secrets.get("GOOGLE_CLIENT_ID", "")
-        google_client_secret = st.secrets.get("GOOGLE_CLIENT_SECRET", "")
+        google_client_id = st.secrets.get("GOOGLE_CLIENT_ID", "").strip()
+        google_client_secret = st.secrets.get("GOOGLE_CLIENT_SECRET", "").strip()
         
         auth_success = False
         user_email_val = None
         user_name_val = None
 
-        if HAS_OAUTH_LIB and google_client_id and google_client_secret:
-            oauth2 = OAuth2Component(
-                client_id=google_client_id,
-                client_secret=google_client_secret,
-                authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
-                token_endpoint="https://oauth2.googleapis.com/token",
-                refresh_token_endpoint="https://oauth2.googleapis.com/token",
-                revoke_endpoint="https://oauth2.googleapis.com/revoke"
-            )
-            result = oauth2.authorize_button(
-                name="Continue with Google (accounts.google.com)",
-                icon="https://www.svgrepo.com/show/475656/google-color.svg",
-                redirect_uri="http://localhost:8501",
-                scope="openid email profile",
-                key="google_oauth_btn"
-            )
-            if result and "token" in result:
-                import jwt
-                try:
-                    id_token_enc = result["token"].get("id_token")
-                    decoded = jwt.decode(id_token_enc, options={"verify_signature": False})
-                    user_email_val = decoded.get("email")
-                    user_name_val = decoded.get("name", user_email_val.split("@")[0])
-                    auth_success = True
-                except Exception:
-                    pass
-        else:
-            st.info("💡 **OAuth Notice:** To enable official `accounts.google.com` secure popup redirection, configure `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.streamlit/secrets.toml`.")
+        # Check if secrets contain actual valid credentials (not placeholders)
+        is_valid_oauth = (
+            HAS_OAUTH_LIB 
+            and google_client_id 
+            and google_client_secret 
+            and "your-" not in google_client_id.lower()
+            and "client_id" not in google_client_id.lower()
+        )
 
-        st.markdown('<div style="text-align: center; color: #475569; font-size: 0.8rem; margin: 1rem 0;">OR INSTANT ACCESS</div>', unsafe_allow_html=True)
+        if is_valid_oauth:
+            try:
+                oauth2 = OAuth2Component(
+                    client_id=google_client_id,
+                    client_secret=google_client_secret,
+                    authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
+                    token_endpoint="https://oauth2.googleapis.com/token",
+                    refresh_token_endpoint="https://oauth2.googleapis.com/token",
+                    revoke_endpoint="https://oauth2.googleapis.com/revoke"
+                )
+                result = oauth2.authorize_button(
+                    name="Continue with Google (accounts.google.com)",
+                    icon="https://www.svgrepo.com/show/475656/google-color.svg",
+                    redirect_uri="http://localhost:8501",
+                    scope="openid email profile",
+                    key="google_oauth_btn"
+                )
+                if result and "token" in result:
+                    import jwt
+                    try:
+                        id_token_enc = result["token"].get("id_token")
+                        decoded = jwt.decode(id_token_enc, options={"verify_signature": False})
+                        user_email_val = decoded.get("email")
+                        user_name_val = decoded.get("name", user_email_val.split("@")[0])
+                        auth_success = True
+                    except Exception:
+                        pass
+            except Exception as e:
+                st.warning(f"OAuth Notice: {str(e)}")
+        else:
+            st.info("💡 **OAuth Notice:** Using Instant Access mode. Add valid `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `secrets.toml` to enable official Google sign-in.")
+
+        st.markdown('<div style="text-align: center; color: #475569; font-size: 0.8rem; margin: 1rem 0;">INSTANT ACCESS</div>', unsafe_allow_html=True)
         
         if st.button("🚀 Enter Athlete Studio", use_container_width=True, type="primary"):
             user_email_val = "athlete@kineticpulse.ai"
@@ -413,7 +425,6 @@ if run_clicked:
 
             st.session_state.latest_analysis = response_text
             
-            # Save automatically to persistent SQLite history
             db_save_analysis(
                 current_user["email"],
                 st.session_state.last_filename,
