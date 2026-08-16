@@ -270,7 +270,7 @@ if not st.session_state.user_session:
 
     with center_col:
         with st.container(border=True):
-            st.markdown(
+            st.markdown("""
                 textwrap.dedent(
                     f"""
                     <div style="text-align:center; margin-bottom:2rem;">
