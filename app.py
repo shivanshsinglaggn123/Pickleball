@@ -279,12 +279,13 @@ if not st.session_state.authenticated:
             st.rerun()
     st.stop()
 
-# --- SECURE API KEY LOAD ---
+# --- SECURE API KEY & CLIENT INITIALIZATION ---
 try:
     api_key = st.secrets["GEMINI_API_KEY"].strip()
-    genai.configure(api_key=api_key)
+    client = genai.Client(api_key=api_key)
 except Exception:
     api_key = ""
+    client = None
     st.error("🔐 API Key not found in secrets.")
 
 # --- SIDEBAR CONTROLS ---
@@ -329,7 +330,7 @@ with st.sidebar:
 st.markdown("""
     <div class="app-badge">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#00F2FE"/></svg>
-        Powered by Gemini 1.5 Flash
+        Powered by Gemini 2.5 Flash
     </div>
 """, unsafe_allow_html=True)
 
@@ -358,7 +359,7 @@ with col_video:
                     tfile.write(video_bytes)
                     tfile.close()
                     
-                    video_file = genai.upload_file(path=tfile.name, mime_type="video/mp4")
+                    video_file = client.files.upload(file=tfile.name)
                     st.session_state.video_ref = video_file
                     st.session_state.last_uploaded_name = uploaded_video.name
                     os.unlink(tfile.name)
@@ -389,7 +390,7 @@ st.markdown("---")
 st.subheader("🧠 AI Motion Breakdown")
 
 if st.button("🚀 Run Analysis", type="primary", use_container_width=True):
-    if not api_key:
+    if not api_key or not client:
         st.error("❌ API Key missing")
     elif not st.session_state.video_ref:
         st.error("❌ Upload a video first")
@@ -411,8 +412,10 @@ if st.button("🚀 Run Analysis", type="primary", use_container_width=True):
                 
                 Be thorough and encouraging."""
                 
-                model = genai.GenerativeModel(model_name='gemini-1.5-flash')
-                response = model.generate_content([st.session_state.video_ref, prompt], stream=False)
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=[st.session_state.video_ref, prompt]
+                )
                 st.session_state.analysis_text = response.text
                 
             except Exception as e:
