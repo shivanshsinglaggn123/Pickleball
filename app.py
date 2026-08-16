@@ -395,25 +395,21 @@ current_user = st.session_state.user_session
 # SIDEBAR
 # ============================================================
 
-with st.sidebar:
-    st.markdown(
-        textwrap.dedent(
-            f"""
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
-                {PICKLEBALL_LOGO_SVG}
-                <div>
-                    <span style="font-size:1.15rem; font-weight:800; background:linear-gradient(135deg,#06B6D4,#8B5CF6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-                        KineticPulse
-                    </span>
-                    <div style="font-size:0.7rem; color:#34D399; font-weight:700;">
-                        ● CLOUD SYNCHRONIZED
-                    </div>
-                </div>
+st.sidebar.markdown(
+    """
+    <div style="margin-bottom: 1rem;">
+        <div>
+            <span style="font-size:1.15rem; font-weight:800; background:linear-gradient(135deg,#06B6D4,#8B5CF6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+                KineticPulse
+            </span>
+            <div style="font-size:0.7rem; color:#34D399; font-weight:700;">
+                ● CLOUD SYNCHRONIZED
             </div>
-            """
-        ),
-        unsafe_allow_html=True,
-    )
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
     st.markdown(
         textwrap.dedent(
