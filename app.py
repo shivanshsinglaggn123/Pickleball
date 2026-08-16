@@ -4,6 +4,7 @@ import os
 import time
 import sqlite3
 import json
+import base64
 import traceback
 from datetime import datetime
 import pandas as pd
@@ -179,15 +180,20 @@ if not st.session_state.user_session:
                     key="google_oauth_btn"
                 )
                 if result and "token" in result:
-                    import jwt
                     try:
                         id_token_enc = result["token"].get("id_token")
-                        decoded = jwt.decode(id_token_enc, options={"verify_signature": False})
-                        user_email_val = decoded.get("email")
-                        user_name_val = decoded.get("name", user_email_val.split("@")[0])
-                        auth_success = True
-                    except Exception:
-                        pass
+                        if id_token_enc:
+                            parts = id_token_enc.split(".")
+                            if len(parts) >= 2:
+                                payload = parts[1]
+                                payload += "=" * (-len(payload) % 4)
+                                decoded = json.loads(base64.b64decode(payload).decode("utf-8"))
+                                user_email_val = decoded.get("email")
+                                user_name_val = decoded.get("name", user_email_val.split("@")[0] if user_email_val else "Athlete")
+                                if user_email_val:
+                                    auth_success = True
+                    except Exception as jwt_err:
+                        st.warning(f"OAuth token parse warning: {str(jwt_err)}")
         except Exception as oauth_err:
             st.info(f"💡 **OAuth Notice:** Running with safe authentication fallback. ({str(oauth_err)})")
 
@@ -203,8 +209,8 @@ if not st.session_state.user_session:
             user_data = db_get_user(user_email_val)
             st.session_state.user_session = {
                 "email": user_email_val,
-                "name": user_data[0],
-                "avatar_color": user_data[1]
+                "name": user_data[0] if user_data else user_name_val,
+                "avatar_color": user_data[1] if user_data else "#06B6D4"
             }
             st.rerun()
 
