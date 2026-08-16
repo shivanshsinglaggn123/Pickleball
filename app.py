@@ -4,6 +4,7 @@ import json
 import os
 import sqlite3
 import tempfile
+import textwrap
 
 from google import genai
 import pandas as pd
@@ -142,63 +143,54 @@ st.set_page_config(
 # ============================================================
 
 st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+    textwrap.dedent(
+        """
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
-    html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-    }
+        html, body, [class*="css"] {
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+        }
 
-    .stApp {
-        background-color: #07090E !important;
-        color: #F8FAFC;
-    }
+        .stApp {
+            background-color: #07090E !important;
+            color: #F8FAFC;
+        }
 
-    .main .block-container {
-        padding-top: 1.5rem;
-        padding-bottom: 4rem;
-        max-width: 1360px;
-    }
+        .main .block-container {
+            padding-top: 1.5rem;
+            padding-bottom: 4rem;
+            max-width: 1360px;
+        }
 
-    .hero-gradient {
-        background: linear-gradient(135deg, #06B6D4 0%, #8B5CF6 45%, #F43F5E 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
-    }
+        .hero-gradient {
+            background: linear-gradient(135deg, #06B6D4 0%, #8B5CF6 45%, #F43F5E 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
 
-    .auth-modal {
-        background: #111827;
-        border: 1px solid #1F2937;
-        color: #F9FAFB;
-        border-radius: 24px;
-        padding: 3rem 2.5rem;
-        max-width: 480px;
-        margin: 4rem auto;
-        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8);
-    }
+        .metric-box {
+            background: linear-gradient(145deg, #0E1626, #0A0F1D);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 16px;
+            padding: 1.25rem;
+            text-align: center;
+        }
 
-    .metric-box {
-        background: linear-gradient(145deg, #0E1626, #0A0F1D);
-        border: 1px solid rgba(6, 182, 212, 0.3);
-        border-radius: 16px;
-        padding: 1.25rem;
-        text-align: center;
-    }
+        div[data-testid="stFileUploader"] {
+            background: #0E1626 !important;
+            border: 2px dashed rgba(6, 182, 212, 0.4) !important;
+            border-radius: 16px !important;
+            padding: 1.5rem !important;
+        }
 
-    div[data-testid="stFileUploader"] {
-        background: #0E1626 !important;
-        border: 2px dashed rgba(6, 182, 212, 0.4) !important;
-        border-radius: 16px !important;
-        padding: 1.5rem !important;
-    }
-
-    #MainMenu, footer, header {
-        visibility: hidden;
-    }
-    </style>
-    """,
+        #MainMenu, footer, header {
+            visibility: hidden;
+        }
+        </style>
+        """
+    ),
     unsafe_allow_html=True,
 )
 
@@ -279,17 +271,19 @@ if not st.session_state.user_session:
     with center_col:
         with st.container(border=True):
             st.markdown(
-                f"""
-                <div style="text-align:center; margin-bottom:2rem;">
-                    <div style="display:flex; justify-content:center; margin-bottom:0.75rem;">
-                        {PICKLEBALL_LOGO_SVG}
+                textwrap.dedent(
+                    f"""
+                    <div style="text-align:center; margin-bottom:2rem;">
+                        <div style="display:flex; justify-content:center; margin-bottom:0.75rem;">
+                            {PICKLEBALL_LOGO_SVG}
+                        </div>
+                        <h2 style="font-size:1.6rem; font-weight:800; margin:0;">KineticPulse AI</h2>
+                        <p style="color:#94A3B8; font-size:0.9rem; margin-top:0.4rem;">
+                            Professional Pickleball Motion Suite
+                        </p>
                     </div>
-                    <h2 style="font-size:1.6rem; font-weight:800; margin:0;">KineticPulse AI</h2>
-                    <p style="color:#94A3B8; font-size:0.9rem; margin-top:0.4rem;">
-                        Professional Pickleball Motion Suite
-                    </p>
-                </div>
-                """,
+                    """
+                ),
                 unsafe_allow_html=True,
             )
 
@@ -360,11 +354,13 @@ if not st.session_state.user_session:
                 )
 
             st.markdown(
-                """
-                <div style="text-align:center; color:#475569; font-size:0.8rem; margin:1rem 0;">
-                    ATHLETE STUDIO ACCESS
-                </div>
-                """,
+                textwrap.dedent(
+                    """
+                    <div style="text-align:center; color:#475569; font-size:0.8rem; margin:1rem 0;">
+                        ATHLETE STUDIO ACCESS
+                    </div>
+                    """
+                ),
                 unsafe_allow_html=True,
             )
 
@@ -405,40 +401,44 @@ current_user = st.session_state.user_session
 
 with st.sidebar:
     st.markdown(
-        f"""
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
-            {PICKLEBALL_LOGO_SVG}
-            <div>
-                <span style="font-size:1.15rem; font-weight:800; background:linear-gradient(135deg,#06B6D4,#8B5CF6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-                    KineticPulse
-                </span>
-                <div style="font-size:0.7rem; color:#34D399; font-weight:700;">
-                    ● CLOUD SYNCHRONIZED
+        textwrap.dedent(
+            f"""
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;">
+                {PICKLEBALL_LOGO_SVG}
+                <div>
+                    <span style="font-size:1.15rem; font-weight:800; background:linear-gradient(135deg,#06B6D4,#8B5CF6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+                        KineticPulse
+                    </span>
+                    <div style="font-size:0.7rem; color:#34D399; font-weight:700;">
+                        ● CLOUD SYNCHRONIZED
+                    </div>
                 </div>
             </div>
-        </div>
-        """,
+            """
+        ),
         unsafe_allow_html=True,
     )
 
     st.markdown(
-        f"""
-        <div style="background:#0E1626; padding:1.1rem; border-radius:16px; border:1px solid #1E293B; margin-bottom:1.2rem;">
-            <div style="display:flex; align-items:center; gap:12px;">
-                <div style="width:42px; height:42px; border-radius:50%; background:#06B6D4; display:flex; align-items:center; justify-content:center; font-weight:800; color:#07090E; font-size:1.1rem;">
-                    {current_user["name"][0].upper()}
-                </div>
-                <div style="overflow:hidden;">
-                    <div style="font-weight:700; font-size:0.92rem; color:#F8FAFC;">
-                        {current_user["name"]}
+        textwrap.dedent(
+            f"""
+            <div style="background:#0E1626; padding:1.1rem; border-radius:16px; border:1px solid #1E293B; margin-bottom:1.2rem;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:42px; height:42px; border-radius:50%; background:#06B6D4; display:flex; align-items:center; justify-content:center; font-weight:800; color:#07090E; font-size:1.1rem;">
+                        {current_user["name"][0].upper()}
                     </div>
-                    <div style="font-size:0.75rem; color:#94A3B8; margin-top:2px;">
-                        {current_user["email"]}
+                    <div style="overflow:hidden;">
+                        <div style="font-weight:700; font-size:0.92rem; color:#F8FAFC;">
+                            {current_user["name"]}
+                        </div>
+                        <div style="font-size:0.75rem; color:#94A3B8; margin-top:2px;">
+                            {current_user["email"]}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        """,
+            """
+        ),
         unsafe_allow_html=True,
     )
 
@@ -648,63 +648,71 @@ with col_dashboard:
 
     with m1:
         st.markdown(
-            f"""
-            <div class="metric-box">
-                <div style="color:#22D3EE; font-size:1.8rem; font-weight:800;">
-                    {metrics["paddle_vel"]} MPH
+            textwrap.dedent(
+                f"""
+                <div class="metric-box">
+                    <div style="color:#22D3EE; font-size:1.8rem; font-weight:800;">
+                        {metrics["paddle_vel"]} MPH
+                    </div>
+                    <div style="color:#94A3B8; font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-top:4px;">
+                        ⚡ Paddle Head Speed
+                    </div>
                 </div>
-                <div style="color:#94A3B8; font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-top:4px;">
-                    ⚡ Paddle Head Speed
-                </div>
-            </div>
-            """,
+                """
+            ),
             unsafe_allow_html=True,
         )
 
         st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
 
         st.markdown(
-            f"""
-            <div class="metric-box">
-                <div style="color:#34D399; font-size:1.8rem; font-weight:800;">
-                    {metrics["dink_acc"]}%
+            textwrap.dedent(
+                f"""
+                <div class="metric-box">
+                    <div style="color:#34D399; font-size:1.8rem; font-weight:800;">
+                        {metrics["dink_acc"]}%
+                    </div>
+                    <div style="color:#94A3B8; font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-top:4px;">
+                        🎯 Control Precision
+                    </div>
                 </div>
-                <div style="color:#94A3B8; font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-top:4px;">
-                    🎯 Control Precision
-                </div>
-            </div>
-            """,
+                """
+            ),
             unsafe_allow_html=True,
         )
 
     with m2:
         st.markdown(
-            f"""
-            <div class="metric-box">
-                <div style="color:#A78BFA; font-size:1.8rem; font-weight:800;">
-                    {metrics["footwork"]} SPM
+            textwrap.dedent(
+                f"""
+                <div class="metric-box">
+                    <div style="color:#A78BFA; font-size:1.8rem; font-weight:800;">
+                        {metrics["footwork"]} SPM
+                    </div>
+                    <div style="color:#94A3B8; font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-top:4px;">
+                        🔄 Footwork Cadence
+                    </div>
                 </div>
-                <div style="color:#94A3B8; font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-top:4px;">
-                    🔄 Footwork Cadence
-                </div>
-            </div>
-            """,
+                """
+            ),
             unsafe_allow_html=True,
         )
 
         st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
 
         st.markdown(
-            f"""
-            <div class="metric-box">
-                <div style="color:#FBBF24; font-size:1.8rem; font-weight:800;">
-                    {metrics["asymmetry"]}%
+            textwrap.dedent(
+                f"""
+                <div class="metric-box">
+                    <div style="color:#FBBF24; font-size:1.8rem; font-weight:800;">
+                        {metrics["asymmetry"]}%
+                    </div>
+                    <div style="color:#94A3B8; font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-top:4px;">
+                        ⚠️ Stance Imbalance
+                    </div>
                 </div>
-                <div style="color:#94A3B8; font-size:0.75rem; font-weight:700; text-transform:uppercase; margin-top:4px;">
-                    ⚠️ Stance Imbalance
-                </div>
-            </div>
-            """,
+                """
+            ),
             unsafe_allow_html=True,
         )
 
@@ -1005,11 +1013,13 @@ with st.container(border=True):
 st.markdown("<br><br>", unsafe_allow_html=True)
 
 st.markdown(
-    """
-    <p style="text-align:center; color:#475569; font-size:0.85rem;">
-        © 2026 KineticPulse AI Suite • Enterprise Biometrics & Cloud Vision •
-        Built with Streamlit & Gemini Cloud
-    </p>
-    """,
+    textwrap.dedent(
+        """
+        <p style="text-align:center; color:#475569; font-size:0.85rem;">
+            © 2026 KineticPulse AI Suite • Enterprise Biometrics & Cloud Vision •
+            Built with Streamlit & Gemini Cloud
+        </p>
+        """
+    ),
     unsafe_allow_html=True,
 )
