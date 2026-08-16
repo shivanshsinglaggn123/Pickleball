@@ -124,16 +124,16 @@ PICKLEBALL_LOGO_SVG = '<svg width="36" height="36" viewBox="0 0 36 36" fill="non
 # 3. INITIALIZE SECURE GEMINI CLIENT
 # ==========================================
 client = None
-api_key = st.secrets.get("GEMINI_API_KEY", "").strip()
-if api_key:
-    try:
+try:
+    api_key = st.secrets.get("GEMINI_API_KEY", "").strip()
+    if api_key:
         if USE_NEW_SDK:
             client = genai.Client(api_key=api_key)
         else:
             genai.configure(api_key=api_key)
             client = genai
-    except Exception as e:
-        st.sidebar.error(f"GenAI Init Error: {str(e)}")
+except Exception as e:
+    st.sidebar.error(f"GenAI Init Error: {str(e)}")
 
 # ==========================================
 # 4. AUTHENTICATION (GOOGLE OAUTH / DEMO)
@@ -153,31 +153,23 @@ if not st.session_state.user_session:
                 </div>
         ''', unsafe_allow_html=True)
 
-        google_client_id = st.secrets.get("GOOGLE_CLIENT_ID", "").strip()
-        google_client_secret = st.secrets.get("GOOGLE_CLIENT_SECRET", "").strip()
-        
         auth_success = False
         user_email_val = None
         user_name_val = None
 
-        # Check if secrets contain actual valid credentials (not placeholders)
-        is_valid_oauth = (
-            HAS_OAUTH_LIB 
-            and google_client_id 
-            and google_client_secret 
-            and "your-" not in google_client_id.lower()
-            and "client_id" not in google_client_id.lower()
-        )
-
-        if is_valid_oauth:
-            try:
+        # Safely attempt to initialize OAuth
+        try:
+            google_client_id = st.secrets.get("GOOGLE_CLIENT_ID", "").strip()
+            google_client_secret = st.secrets.get("GOOGLE_CLIENT_SECRET", "").strip()
+            
+            if HAS_OAUTH_LIB and google_client_id and google_client_secret:
                 oauth2 = OAuth2Component(
                     client_id=google_client_id,
                     client_secret=google_client_secret,
                     authorize_endpoint="https://accounts.google.com/o/oauth2/v2/auth",
                     token_endpoint="https://oauth2.googleapis.com/token",
                     refresh_token_endpoint="https://oauth2.googleapis.com/token",
-                    revoke_endpoint="https://oauth2.googleapis.com/revoke"
+                    revoke_token_endpoint="https://oauth2.googleapis.com/revoke"
                 )
                 result = oauth2.authorize_button(
                     name="Continue with Google (accounts.google.com)",
@@ -196,12 +188,10 @@ if not st.session_state.user_session:
                         auth_success = True
                     except Exception:
                         pass
-            except Exception as e:
-                st.warning(f"OAuth Notice: {str(e)}")
-        else:
-            st.info("💡 **OAuth Notice:** Using Instant Access mode. Add valid `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `secrets.toml` to enable official Google sign-in.")
+        except Exception as oauth_err:
+            st.info(f"💡 **OAuth Notice:** Running with safe authentication fallback. ({str(oauth_err)})")
 
-        st.markdown('<div style="text-align: center; color: #475569; font-size: 0.8rem; margin: 1rem 0;">INSTANT ACCESS</div>', unsafe_allow_html=True)
+        st.markdown('<div style="text-align: center; color: #475569; font-size: 0.8rem; margin: 1rem 0;">ATHLETE STUDIO ACCESS</div>', unsafe_allow_html=True)
         
         if st.button("🚀 Enter Athlete Studio", use_container_width=True, type="primary"):
             user_email_val = "athlete@kineticpulse.ai"
