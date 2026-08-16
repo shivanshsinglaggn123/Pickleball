@@ -48,7 +48,7 @@ st.markdown("""
         text-transform: uppercase;
     }
 
-    /* Interactive Buttons (Mocked for UI) */
+    /* Interactive Buttons Styling */
     .inactive-btn {
         background-color: #F3F4F6;
         color: #374151;
@@ -57,11 +57,9 @@ st.markdown("""
         border: 1px solid #D1D5DB;
         text-align: center;
         font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
     }
     .active-btn {
-        background-color: #2563EB; /* Vibrant Blue */
+        background-color: #2563EB;
         color: white;
         padding: 0.75rem 1.5rem;
         border-radius: 8px;
@@ -94,8 +92,7 @@ col_h1, col_h2 = st.columns([4, 1])
 with col_h1:
     st.title("AI Pickleball Biomechanics Coach")
 with col_h2:
-    # Create a clean profile area
-    st.markdown(f"""
+    st.markdown("""
         <div style='display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 10px; background-color: white; border-radius: 50px; border: 1px solid #E5E7EB;'>
             <span style='font-weight: 600; color: #1E3A8A;'>Shivansh's Dashboard</span>
             <img src='https://api.dicebear.com/8.x/adventurer/svg?seed=Shivansh' style='width: 40px; height: 40px; border-radius: 50%; border: 2px solid #2563EB;'>
@@ -106,11 +103,10 @@ with col_h2:
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.image("https://i.imgur.com/w3y6QxN.png", width=150) # Placeholder logo
     st.markdown("## Navigation")
-    st.page_link("app.py", label="Analyze Video", icon="📹")
-    st.page_link("app.py", label="History", icon="📜")
-    st.page_link("app.py", label="Settings", icon="⚙️")
+    st.markdown("📹 **Analyze Video**")
+    st.markdown("📜 **History**")
+    st.markdown("⚙️ **Settings**")
     
     st.markdown("---")
     st.markdown("## Player Profile")
@@ -143,7 +139,6 @@ with col_video:
     if uploaded_video:
         st.video(uploaded_video)
         
-        # Process video with Gemini if new
         if st.session_state.video_ref is None or uploaded_video.name != st.session_state.get("last_uploaded_name"):
             with st.spinner("Uploading video to Gemini AI..."):
                 try:
@@ -163,7 +158,6 @@ with col_insights:
     st.subheader("Quick Insights")
     c1, c2, c3 = st.columns(3)
     
-    # Mock KPI values for the UI
     kpi_data = [("Ball Speed", "42 MPH"), ("Spin RPM", "1800"), ("Footwork", "88/100")]
     for col, (label, value) in zip([c1, c2, c3], kpi_data):
         with col:
@@ -174,21 +168,19 @@ with col_insights:
                 </div>
             """, unsafe_allow_html=True)
     
-    # Interactive Buttons for Switching View
     st.markdown("### Analysis Focus")
     b_col1, b_col2 = st.columns(2)
     
     with b_col1:
         if st.button("Forehand Drive"):
             st.session_state.active_shot = "Forehand Drive"
-            st.rerun() # Rerun to update button style
+            st.rerun()
             
     with b_col2:
         if st.button("Backhand Slice"):
             st.session_state.active_shot = "Backhand Slice"
             st.rerun()
 
-    # Update Button Style based on active state
     if st.session_state.active_shot == "Forehand Drive":
         b_col1.markdown("<div class='active-btn'>Forehand Drive</div>", unsafe_allow_html=True)
         b_col2.markdown("<div class='inactive-btn'>Backhand Slice</div>", unsafe_allow_html=True)
@@ -197,7 +189,7 @@ with col_insights:
         b_col2.markdown("<div class='active-btn'>Backhand Slice</div>", unsafe_allow_html=True)
 
 
-# --- EXPERT COACHING BREAKDOWN (The AI Response) ---
+# --- EXPERT COACHING BREAKDOWN ---
 st.markdown("<br>", unsafe_allow_html=True)
 st.header("Expert Coaching Breakdown")
 
@@ -217,11 +209,9 @@ if run_btn:
                 The player's skill level is DUPR {skill_level}.
                 
                 Analyze the video clip for biomechanics, footwork, and technique.
-                
-                Provide feedback in a friendly, encouraging, and simple tone.
-                Avoid robotic angle instructions (e.g., "go to 45 degrees").
-                Instead, explain concepts simply (e.g., "stay balanced with your weight forward").
-                Highlight what is going well and provide 2-3 practical adjustments.
+                Provide feedback in a friendly, encouraging, and simple tone. 
+                Avoid rigid angle instructions (e.g., "go to 45 degrees"). 
+                Instead, explain concepts simply and give 2-3 practical adjustments.
                 """
                 
                 response = client.models.generate_content(
@@ -234,13 +224,12 @@ if run_btn:
             except Exception as e:
                 st.session_state.analysis_text = f"An error occurred during AI processing: {e}"
 
-# Display the analysis text in the styled box
 st.markdown(f"<div class='coaching-box'>{st.session_state.analysis_text}</div>", unsafe_allow_html=True)
 
 # --- FOOTER ---
 st.markdown("---")
 c_foot1, c_foot2 = st.columns([3, 1])
 with c_foot1:
-    st.markdown("© Copyright Shivansh Singla. Built for MIT Portfolio.")
+    st.markdown("© Copyright Shivansh Singla. Built for College Portfolio.")
 with c_foot2:
-    st.markdown("Blog | History | Contact Us")
+    st.markdown("Contact Us")
