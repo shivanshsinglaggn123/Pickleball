@@ -872,6 +872,9 @@ Provide:
 """
 
             try:
+                import time  # Ensuring time is available for the sleep functions
+                import os
+                
                 active_file = None
 
                 try:
@@ -937,10 +940,43 @@ Provide:
                         f"Gemini video is not ready. Current state: {state_name}"
                     )
 
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=[active_file, prompt],
-                )
+                # ---------------------------------------------------------
+                # NEW: 503 RETRY LOGIC FOR GENERATE_CONTENT
+                # ---------------------------------------------------------
+                max_retries = 3
+                retry_delay = 5
+                response = None
+
+                for attempt in range(max_retries):
+                    try:
+                        if attempt > 0:
+                            st.warning(f"⏳ Google's servers were busy. Retrying... (Attempt {attempt + 1} of {max_retries})")
+                            
+                        response = client.models.generate_content(
+                            model="gemini-2.5-flash",
+                            contents=[active_file, prompt],
+                        )
+                        # If successful, break the retry loop!
+                        break
+                        
+                    except Exception as api_error:
+                        error_msg = str(api_error)
+                        
+                        # Handle 503 / 500 Server Overload
+                        if "503" in error_msg or "Service Unavailable" in error_msg or "500" in error_msg:
+                            if attempt < max_retries - 1:
+                                time.sleep(retry_delay)
+                            else:
+                                raise RuntimeError(f"Google API is consistently overloaded right now. Please try again later. Details: {error_msg}")
+                        
+                        # Handle Rate Limits
+                        elif "429" in error_msg or "Quota" in error_msg:
+                            raise RuntimeError(f"Rate limit exceeded. We've made too many requests. Please wait a few minutes. Details: {error_msg}")
+                            
+                        # If it's a different error, raise it immediately
+                        else:
+                            raise api_error
+                # ---------------------------------------------------------
 
                 response_text = ""
 
@@ -953,7 +989,7 @@ Provide:
                     response_text = "⚠️ Gemini returned an empty response."
 
                     try:
-                        if response.candidates:
+                        if response and getattr(response, "candidates", None):
                             response_text += (
                                 f"\n\nGemini returned {len(response.candidates)} "
                                 "candidate(s), but no text."
@@ -988,7 +1024,6 @@ Provide:
 
                 st.error(error_message)
                 st.exception(e)
-
 
 # ============================================================
 # REPORT
