@@ -1,7 +1,7 @@
 import streamlit as st
 import tempfile
 import os
-import time
+import textwrap
 from datetime import datetime
 from google import genai
 from moviepy.editor import VideoFileClip
@@ -35,10 +35,9 @@ for key, value in DEFAULTS.items():
         st.session_state[key] = value
 
 # ==========================================
-# 2. BULLETPROOF VIBRANT DARK DESIGN SYSTEM
+# 2. DEDENTED DARK DESIGN SYSTEM (NO LEAKING)
 # ==========================================
-# Written as a standard raw string to prevent Python f-string bracket escaping bugs
-st.markdown("""
+st.markdown(textwrap.dedent("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -57,7 +56,6 @@ st.markdown("""
         max-width: 1320px;
     }
 
-    /* --- VIBRANT NEON GRADIENTS --- */
     .hero-gradient {
         background: linear-gradient(135deg, #06B6D4 0%, #8B5CF6 45%, #F43F5E 100%);
         -webkit-background-clip: text;
@@ -69,7 +67,6 @@ st.markdown("""
         filter: drop-shadow(0px 0px 12px rgba(6, 182, 212, 0.4));
     }
 
-    /* --- AUTHENTICATION DIALOG --- */
     .auth-modal {
         background: #FFFFFF;
         color: #1F2937;
@@ -80,7 +77,6 @@ st.markdown("""
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
     }
 
-    /* --- COLORFUL NEON METRIC CARDS --- */
     .metric-card-cyan {
         background: linear-gradient(145deg, #131B2A, #0F172A);
         border: 1px solid rgba(6, 182, 212, 0.35);
@@ -132,7 +128,6 @@ st.markdown("""
         margin-top: 0.3rem;
     }
 
-    /* --- BADGES & CONTAINERS --- */
     .badge-pill {
         display: inline-flex;
         align-items: center;
@@ -157,17 +152,6 @@ st.markdown("""
         font-weight: 700;
     }
 
-    .coaching-box {
-        background: #131B2A;
-        border: 1px solid #2A384E;
-        border-top: 3px solid #8B5CF6;
-        border-radius: 20px;
-        padding: 2rem;
-        color: #E2E8F0;
-        line-height: 1.8;
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-    }
-
     div[data-testid="stFileUploader"] {
         background: #131B2A !important;
         border: 2px dashed rgba(59, 130, 246, 0.5) !important;
@@ -187,7 +171,7 @@ st.markdown("""
 
     #MainMenu, footer, header { visibility: hidden; }
     </style>
-""", unsafe_allow_html=True)
+"""), unsafe_allow_html=True)
 
 # ==========================================
 # 3. HELPER FUNCTIONS & COMPRESSION PIPELINE
@@ -212,11 +196,9 @@ def compress_and_optimize_video(input_path, max_height=720, target_fps=20):
         )
     return output_path
 
-# Custom Pickleball + Motion Vector Logo
 PICKLEBALL_LOGO_SVG = """
 <svg width="34" height="34" viewBox="0 0 36 36" fill="none" class="brand-glow">
   <circle cx="18" cy="18" r="16" fill="url(#pball_grad)" stroke="#22D3EE" stroke-width="1.5"/>
-  <!-- Pickleball Hole Pattern -->
   <circle cx="18" cy="18" r="2.5" fill="#0B0F17"/>
   <circle cx="12" cy="14" r="2" fill="#0B0F17"/>
   <circle cx="24" cy="14" r="2" fill="#0B0F17"/>
@@ -224,7 +206,6 @@ PICKLEBALL_LOGO_SVG = """
   <circle cx="22" cy="22" r="2" fill="#0B0F17"/>
   <circle cx="18" cy="10" r="1.8" fill="#0B0F17"/>
   <circle cx="18" cy="26" r="1.8" fill="#0B0F17"/>
-  <!-- Kinetic Motion Arc -->
   <path d="M 4 18 A 14 14 0 0 1 28 6" stroke="#F43F5E" stroke-width="3" stroke-linecap="round"/>
   <defs>
     <linearGradient id="pball_grad" x1="0" y1="0" x2="36" y2="36">
@@ -258,20 +239,20 @@ if not st.session_state.authenticated:
     
     with col_center:
         if st.session_state.auth_step == "main_menu":
-            st.markdown(f"""
+            st.markdown(textwrap.dedent(f"""
                 <div class="auth-modal">
                     <div style="text-align: center; margin-bottom: 1.75rem;">
                         <div style="display: flex; justify-content: center; margin-bottom: 0.6rem;">{PICKLEBALL_LOGO_SVG}</div>
                         <h2 style="color: #111827 !important; font-size: 1.5rem; font-weight: 800; margin: 0;">KineticPulse AI</h2>
                         <p style="color: #6B7280; font-size: 0.88rem; margin-top: 0.3rem;">Pickleball & Athletic Motion Tracking</p>
                     </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
             
             if st.button("🌐 Sign in with Google", key="btn_login_google", use_container_width=True, type="primary"):
                 st.session_state.auth_step = "google_signin"
                 st.rerun()
 
-            st.markdown("<div style='text-align: center; color: #9CA3AF; font-size: 0.8rem; margin: 0.8rem 0;'>OR</div>", unsafe_allow_html=True)
+            st.markdown('<div style="text-align: center; color: #9CA3AF; font-size: 0.8rem; margin: 0.8rem 0;">OR</div>', unsafe_allow_html=True)
             
             if st.button("👤 Continue as Guest", key="btn_login_guest", use_container_width=True):
                 st.session_state.authenticated = True
@@ -281,27 +262,27 @@ if not st.session_state.authenticated:
                 st.session_state.user_avatar_color = "#F59E0B"
                 st.rerun()
                 
-            st.markdown("""
+            st.markdown(textwrap.dedent("""
                 <div style="margin-top: 1.5rem; padding: 0.8rem; background: #F3F4F6; border-radius: 12px; font-size: 0.78rem; color: #4B5563; text-align: center;">
                     💡 <strong>Guest Mode:</strong> Full AI motion analysis access. Sign in with Google later to save progress.
                 </div>
                 </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
 
         elif st.session_state.auth_step == "google_signin":
-            st.markdown(f"""
+            st.markdown(textwrap.dedent(f"""
                 <div class="auth-modal">
                     <div style="text-align: center; margin-bottom: 1.5rem;">
                         <div style="display: inline-block; margin-bottom: 0.5rem;">{GOOGLE_SVG}</div>
                         <h2 style="color: #111827 !important; font-size: 1.35rem; font-weight: 700;">Sign in with Google</h2>
                         <p style="color: #6B7280; font-size: 0.85rem;">Enter your Google Account email to authenticate</p>
                     </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
             
             user_g_email = st.text_input("Google Email Address", placeholder="your.name@gmail.com")
             user_g_name = st.text_input("Your Full Name", placeholder="e.g. Alex Rivers")
             
-            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+            st.markdown('<div style="height: 10px;"></div>', unsafe_allow_html=True)
             
             if st.button("Authenticate Google Account →", type="primary", use_container_width=True):
                 if user_g_email.strip() and "@" in user_g_email:
@@ -326,17 +307,17 @@ if not st.session_state.authenticated:
 # 6. SIDEBAR, TRACKING TARGET & BRANDING
 # ==========================================
 with st.sidebar:
-    st.markdown(f"""
+    st.markdown(textwrap.dedent(f"""
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1.25rem;">
             {PICKLEBALL_LOGO_SVG}
             <span style="font-size: 1.25rem; font-weight: 800; background: linear-gradient(135deg, #06B6D4, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KineticPulse</span>
         </div>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
     
     avatar_initial = st.session_state.user_name[0].upper() if st.session_state.user_name else "A"
     account_type_badge = '<span class="badge-guest">GUEST</span>' if st.session_state.is_guest else '<span style="color: #34D399; font-size: 0.72rem; font-weight: 700;">● SYNCHRONIZED</span>'
     
-    st.markdown(f"""
+    st.markdown(textwrap.dedent(f"""
         <div style="background: #131B2A; padding: 1rem; border-radius: 14px; border: 1px solid #2A384E; margin-bottom: 1rem;">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="width: 40px; height: 40px; border-radius: 50%; background: {st.session_state.user_avatar_color}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; color: white;">
@@ -348,7 +329,7 @@ with st.sidebar:
                 </div>
             </div>
         </div>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
     if st.session_state.is_guest:
         st.warning("⚠️ Progress won't be saved after session ends unless linked to Google.")
@@ -386,21 +367,20 @@ with st.sidebar:
                 st.write(item['summary'][:150] + "...")
 
 # ==========================================
-# 7. MAIN VIBRANT DASHBOARD
+# 7. MAIN DASHBOARD
 # ==========================================
-st.markdown("""
+st.markdown(textwrap.dedent("""
     <div class="badge-pill">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#8B5CF6"/></svg>
         Gemini 3.5 Flash Multimodal Vision Active
     </div>
-""", unsafe_allow_html=True)
+"""), unsafe_allow_html=True)
 
 st.markdown('<h1 style="font-size: 2.6rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 12px;">Biomechanical <span class="hero-gradient">Motion Studio</span></h1>', unsafe_allow_html=True)
 st.markdown('<p style="color: #94A3B8; font-size: 1.05rem; margin-bottom: 2rem;">Real-time athletic telemetry, court positioning, and AI biomechanical breakdown.</p>', unsafe_allow_html=True)
 
 col_video, col_telemetry = st.columns([1.25, 1], gap="large")
 
-# --- MEMORY-OPTIMIZED VIDEO PROCESSING ---
 with col_video:
     st.subheader("📹 Session Footage")
     uploaded_video = st.file_uploader("Upload high-definition clip (MP4 / MOV)", type=["mp4", "mov"])
@@ -409,15 +389,12 @@ with col_video:
         if uploaded_video.name != st.session_state.get("last_uploaded_name"):
             with st.spinner("⚡ Downscaling resolution & optimizing RAM footprint..."):
                 try:
-                    # 1. Direct disk stream (prevents memory leaks)
                     raw_path = os.path.join(tempfile.gettempdir(), f"raw_{uploaded_video.name}")
                     with open(raw_path, "wb") as f:
                         f.write(uploaded_video.getbuffer())
                     
-                    # 2. Compress to 720p @ 20 FPS
                     compressed_path = compress_and_optimize_video(raw_path)
                     
-                    # 3. Upload to Gemini Client
                     if client:
                         video_file = client.files.upload(file=compressed_path)
                         st.session_state.video_ref = video_file
@@ -429,53 +406,51 @@ with col_video:
                 except Exception as e:
                     st.error(f"Processing Error: {str(e)}")
 
-        # 4. Safe playback from disk
         if st.session_state.get("display_video_path") and os.path.exists(st.session_state.display_video_path):
             st.video(st.session_state.display_video_path)
 
-# --- VIBRANT COLOR-CODED TELEMETRY GRID ---
 with col_telemetry:
     st.subheader("📊 Live Telemetry Grid")
     
     tc1, tc2 = st.columns(2)
     with tc1:
-        st.markdown("""
+        st.markdown(textwrap.dedent("""
             <div class="metric-card-cyan">
                 <div class="val-cyan">52.4 MPH</div>
                 <div class="metric-label">⚡ Paddle Velocity</div>
             </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
-        st.markdown("""
+        """), unsafe_allow_html=True)
+        st.markdown('<div style="height: 12px;"></div>', unsafe_allow_html=True)
+        st.markdown(textwrap.dedent("""
             <div class="metric-card-emerald">
                 <div class="val-emerald">97 / 100</div>
                 <div class="metric-label">🎯 Dinking Mechanics</div>
             </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
     with tc2:
-        st.markdown("""
+        st.markdown(textwrap.dedent("""
             <div class="metric-card-violet">
                 <div class="val-violet">186 SPM</div>
                 <div class="metric-label">🔄 Footwork Cadence</div>
             </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
-        st.markdown("""
+        """), unsafe_allow_html=True)
+        st.markdown('<div style="height: 12px;"></div>', unsafe_allow_html=True)
+        st.markdown(textwrap.dedent("""
             <div class="metric-card-amber">
                 <div class="val-amber">3.2%</div>
                 <div class="metric-label">⚠️ Balance Asymmetry</div>
             </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
-    st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
-    st.info("💡 **Memory Shield Active:** Footage is downsampled to 720p @ 20 FPS to prevent memory crashes.")
+    st.markdown('<div style="height: 14px;"></div>', unsafe_allow_html=True)
+    st.info("💡 **Memory Shield Active:** Footage is downsampled to 720p @ 20 FPS to protect browser memory.")
 
 # ==========================================
 # 8. AI MOTION BREAKDOWN & TARGETED ANALYSIS
 # ==========================================
-st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-st.markdown("<hr style='border-color: #2A384E;'>", unsafe_allow_html=True)
+st.markdown('<div style="height: 20px;"></div>', unsafe_allow_html=True)
+st.markdown('<hr style="border-color: #2A384E;">', unsafe_allow_html=True)
 
 col_breakdown_head, col_save_btn = st.columns([2, 1])
 with col_breakdown_head:
@@ -522,12 +497,9 @@ if st.button("🚀 Run AI Motion Breakdown", type="primary", use_container_width
             except Exception as e:
                 st.session_state.analysis_text = f"Analysis Failed: {str(e)}"
 
-st.markdown(f"""
-    <div class="coaching-box">
-        {st.session_state.analysis_text}
-    </div>
-""", unsafe_allow_html=True)
+with st.container(border=True):
+    st.markdown(st.session_state.analysis_text)
 
 st.markdown("<br><br>", unsafe_allow_html=True)
-st.markdown("<hr style='border-color: #2A384E;'>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #64748B; font-size: 0.85rem;'>© 2026 KineticPulse AI Studio • Pickleball Motion Analytics • Built with Streamlit & Gemini 3.5 Flash</p>", unsafe_allow_html=True)
+st.markdown('<hr style="border-color: #2A384E;">', unsafe_allow_html=True)
+st.markdown('<p style="text-align: center; color: #64748B; font-size: 0.85rem;">© 2026 KineticPulse AI Studio • Pickleball Motion Analytics • Built with Streamlit & Gemini 3.5 Flash</p>', unsafe_allow_html=True)
